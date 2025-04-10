@@ -7,7 +7,7 @@
           <div class="task-type-selector">
             <v-card flat class="task-type-container">
               <v-row no-gutters>
-                <v-col v-for="type in taskTypes" :key="type.value" cols="12" sm="6" md="3" lg="auto">
+                <v-col v-for="type in taskTypes.value" :key="type.value" cols="12" sm="6" md="3" lg="auto">
                   <v-card
                     :class="['task-type-card', { 'selected': selectedType === type.value }]"
                     flat
@@ -352,7 +352,7 @@
                   <v-select
                     v-model="formData.taskType"
                     label="Тип задачи"
-                    :items="taskTypes"
+                    :items="taskTypes.value"
                     item-title="title"
                     item-value="value"
                     variant="outlined"
@@ -524,7 +524,7 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
-const taskTypes = [
+const taskTypes = ref([
   { 
     title: 'Легкая промышленность',
     value: 'light',
@@ -560,7 +560,7 @@ const taskTypes = [
     value: 'tu',
     icon: 'mdi-file-cog'
   }
-]
+])
 
 const selectedType = ref(null)
 const saving = ref(false)
@@ -658,7 +658,7 @@ const getTechnicalRegulations = computed(() => {
 })
 
 const getFormTitle = computed(() => {
-  const type = taskTypes.find(t => t.value === selectedType.value)
+  const type = taskTypes.value.find(t => t.value === selectedType.value)
   return type ? type.title : 'Новая заявка'
 })
 
@@ -803,7 +803,7 @@ watch(() => formData.value.applicant, (newVal, oldVal) => {
 watch(
   () => route.query.type,
   (newType) => {
-    if (newType && taskTypes.some(t => t.value === newType)) {
+    if (newType && taskTypes.value.some(t => t.value === newType)) {
       selectedType.value = newType
     }
   },
@@ -830,12 +830,18 @@ onMounted(() => {
   // Check if there's a type parameter in the route query
   const { type } = route.query
   if (type && ['heavy', 'light', 'rejection', 'manual', 'passport', 'safety', 'tu'].includes(type)) {
-    selectedType.value = taskTypes.find(t => t.value === type)
+    selectedType.value = taskTypes.value.find(t => t.value === type)
   }
 })
 
 const selectType = (type) => {
   selectedType.value = type
+  // Navigate to specific view if type is heavy or light
+  if (type === 'heavy') {
+    router.push({ name: 'application-create-heavy' })
+  } else if (type === 'light') {
+    router.push({ name: 'application-create-light' })
+  } // Add else-if for other types if they get dedicated views
 }
 </script>
 

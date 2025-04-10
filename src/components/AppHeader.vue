@@ -8,6 +8,7 @@
     </v-app-bar-title>
     
     <v-text-field
+      v-if="route.name === 'applications'"
       density="compact"
       variant="solo"
       hide-details
@@ -62,9 +63,11 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
+import { useRoute } from 'vue-router'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const route = useRoute()
 
 const logout = () => {
   authStore.logout()

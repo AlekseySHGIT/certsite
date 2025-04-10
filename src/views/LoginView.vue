@@ -99,8 +99,8 @@ const showError = ref(false)
 const errorMessage = ref('')
 
 // Pre-fill admin credentials
-const email = ref('admin')
-const password = ref('admin')
+const email = ref('admin@admin.cc')
+const password = ref('admin@admin.cc')
 
 const emailRules = [
   v => !!v || 'Email обязателен',

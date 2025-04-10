@@ -43,6 +43,26 @@ const routes = [
     }
   },
   {
+    path: '/applications/create/light',
+    name: 'application-create-light',
+    component: () => import('../views/LightIndustryView.vue'),
+    meta: { 
+      showInMenu: false,
+      roles: ['client', 'manager', 'admin'],
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/applications/create/heavy',
+    name: 'application-create-heavy',
+    component: () => import('../views/HeavyIndustryView.vue'),
+    meta: { 
+      showInMenu: false,
+      roles: ['client', 'manager', 'admin'],
+      requiresAuth: true
+    }
+  },
+  {
     path: '/application/:id',
     name: 'application-edit',
     component: () => import('../views/ApplicationEditView.vue'),
