@@ -35,63 +35,78 @@
       <!-- Applications Section - only for authenticated users -->
       <v-list-group 
         v-if="authStore.isAuthenticated"
-        value="applications"
+        value="applications-group"
       >
         <template v-slot:activator="{ props }">
           <v-list-item
             v-bind="props"
             prepend-icon="mdi-file-document-multiple"
             title="Заявки"
+            value="applications-menu"
           ></v-list-item>
         </template>
 
         <v-list-item
           prepend-icon="mdi-factory"
           title="Тяжелая промышленность"
-          value="heavy-industry"
-          to="/applications/heavy"
+          value="applications-heavy"
+          to="/applications/create"
+          :custom-value="{ type: 'heavy' }"
+          @click="selectApplicationType('heavy')"
         ></v-list-item>
         
         <v-list-item
           prepend-icon="mdi-tshirt-crew"
           title="Легкая промышленность"
-          value="light-industry"
-          to="/applications/light"
+          value="applications-light"
+          to="/applications/create"
+          :custom-value="{ type: 'light' }"
+          @click="selectApplicationType('light')"
         ></v-list-item>
 
         <v-list-item
           prepend-icon="mdi-close-circle"
           title="Отказные письма"
-          value="rejection-letters"
-          to="/applications/rejection"
+          value="applications-rejection"
+          to="/applications/create"
+          :custom-value="{ type: 'rejection' }"
+          @click="selectApplicationType('rejection')"
         ></v-list-item>
 
         <v-list-item
           prepend-icon="mdi-book-open"
           title="Руководства по эксплуатации"
-          value="manuals"
-          to="/applications/manuals"
+          value="applications-manual"
+          to="/applications/create"
+          :custom-value="{ type: 'manual' }"
+          @click="selectApplicationType('manual')"
         ></v-list-item>
 
         <v-list-item
           prepend-icon="mdi-certificate"
           title="Паспорт продукции"
-          value="product-passport"
-          to="/applications/passport"
+          value="applications-passport"
+          to="/applications/create"
+          :custom-value="{ type: 'passport' }"
+          @click="selectApplicationType('passport')"
         ></v-list-item>
 
         <v-list-item
           prepend-icon="mdi-shield-check"
           title="Обоснование безопасности"
-          value="safety"
-          to="/applications/safety"
+          value="applications-safety"
+          to="/applications/create"
+          :custom-value="{ type: 'safety' }"
+          @click="selectApplicationType('safety')"
         ></v-list-item>
 
         <v-list-item
           prepend-icon="mdi-file-document"
           title="ТУ"
-          value="tu"
-          to="/applications/tu"
+          value="applications-tu"
+          to="/applications/create"
+          :custom-value="{ type: 'tu' }"
+          @click="selectApplicationType('tu')"
         ></v-list-item>
       </v-list-group>
 
@@ -159,7 +174,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../store/auth'
+import { useAuthStore } from '../stores/auth'
 
 const drawer = ref(true)
 const rail = ref(false)
@@ -183,6 +198,13 @@ const userInitials = computed(() => {
     .toUpperCase()
     .slice(0, 2)
 })
+
+const selectApplicationType = (type) => {
+  router.push({ 
+    name: 'application-create',
+    query: { type }
+  })
+}
 
 const logout = () => {
   authStore.logout()

@@ -1,110 +1,146 @@
 <template>
-  <v-container fluid class="fill-height bg-grey-lighten-4">
+  <v-container class="fill-height">
     <v-row justify="center" align="center">
       <v-col cols="12" sm="8" md="6" lg="4">
-        <v-card class="pa-4 mx-auto" max-width="500" variant="outlined" elevation="1">
-          <v-card-title class="text-h5 text-center mb-4">Авторизация</v-card-title>
-          
-          <v-form ref="form" @submit.prevent="submitLogin" validate-on="submit">
-            <v-text-field
-              v-model="credentials.email"
-              label="Email"
-              variant="outlined"
-              density="comfortable"
-              bg-color="white"
-              prepend-inner-icon="mdi-account"
-              :rules="[rules.required]"
-              class="mb-4"
-              hide-details="auto"
-            ></v-text-field>
-            
-            <v-text-field
-              v-model="credentials.password"
-              label="Пароль"
-              variant="outlined"
-              density="comfortable"
-              bg-color="white"
-              prepend-inner-icon="mdi-lock"
-              :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-              @click:append-inner="showPassword = !showPassword"
-              :type="showPassword ? 'text' : 'password'"
-              :rules="[rules.required]"
-              class="mb-4"
-              hide-details="auto"
-            ></v-text-field>
-            
-            <v-alert
-              v-if="errorMessage"
-              type="error"
-              variant="tonal"
-              density="compact"
-              class="mb-4"
-            >
-              {{ errorMessage }}
-            </v-alert>
-            
+        <v-card class="elevation-4">
+          <v-card-title class="text-h5 text-center pa-4">
+            Вход в систему
+          </v-card-title>
+
+          <v-card-text>
+            <v-form ref="form" v-model="valid" @submit.prevent="handleSubmit">
+              <v-text-field
+                v-model="email"
+                label="Email"
+                type="email"
+             
+                required
+                prepend-icon="mdi-email"
+                variant="outlined"
+                density="comfortable"
+                class="mb-4"
+              ></v-text-field>
+
+              <v-text-field
+                v-model="password"
+                label="Пароль"
+                :type="showPassword ? 'text' : 'password'"
+                :rules="passwordRules"
+                required
+                prepend-icon="mdi-lock"
+                :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                @click:append-inner="showPassword = !showPassword"
+                variant="outlined"
+                density="comfortable"
+                class="mb-6"
+              ></v-text-field>
+
+              <v-btn
+                block
+                color="primary"
+                size="large"
+                type="submit"
+                :loading="loading"
+                :disabled="!valid || loading"
+              >
+                Войти
+              </v-btn>
+            </v-form>
+          </v-card-text>
+
+          <v-card-actions class="justify-center pb-4">
             <v-btn
-              type="submit"
+              variant="text"
               color="primary"
-              block
-              size="large"
-              :loading="loading"
-              class="mb-4"
-              elevation="1"
+              :to="{ name: 'register' }"
+              :disabled="loading"
             >
-              Войти
+              Зарегистрироваться
             </v-btn>
-            
-            <v-divider class="mb-4"></v-divider>
-            
-            <div class="text-center text-caption text-grey">
-              <p class="mb-1">Для входа используйте:</p>
-              <p class="mb-1">Email: client@client.cc / manager@manager.cc / admin@admin.cc</p>
-              <p class="mb-0">Пароль: такой же, как Email</p>
-            </div>
-          </v-form>
+          </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
+
+    <!-- Error Alert -->
+    <v-snackbar
+      v-model="showError"
+      color="error"
+      timeout="3000"
+      location="top"
+    >
+      {{ errorMessage }}
+      <template v-slot:actions>
+        <v-btn
+          color="white"
+          variant="text"
+          @click="showError = false"
+        >
+          Закрыть
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../store/auth'
+import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
 const form = ref(null)
-const showPassword = ref(false)
+const valid = ref(false)
 const loading = ref(false)
+const showPassword = ref(false)
+const showError = ref(false)
 const errorMessage = ref('')
 
-const credentials = reactive({
-  email: '',
-  password: ''
-})
+// Pre-fill admin credentials
+const email = ref('admin')
+const password = ref('admin')
 
-const rules = {
-  required: value => !!value || 'Обязательное поле',
-}
+const emailRules = [
+  v => !!v || 'Email обязателен',
+  v => /.+@.+\..+/.test(v) || 'Email должен быть валидным',
+]
 
-const submitLogin = async () => {
-  errorMessage.value = ''
-  const { valid } = await form.value.validate()
-  
-  if (valid) {
-    loading.value = true
-    
-    try {
-      await authStore.login(credentials.email, credentials.password)
-      router.push('/applications')
-    } catch (error) {
-      errorMessage.value = error.message || 'Ошибка входа. Проверьте введенные данные.'
-    } finally {
-      loading.value = false
-    }
+const passwordRules = [
+  v => !!v || 'Пароль обязателен',
+  v => v.length >= 4 || 'Пароль должен быть не менее 4 символов',
+]
+
+const handleSubmit = async () => {
+  if (!valid.value) return
+
+  loading.value = true
+  try {
+    await authStore.login(email.value, password.value)
+    router.push({ name: 'home' })
+  } catch (error) {
+    errorMessage.value = error.message || 'Ошибка при входе'
+    showError.value = true
+  } finally {
+    loading.value = false
   }
 }
+
+onMounted(() => {
+  // Reset any previous auth errors
+  authStore.$reset()
+})
 </script>
+
+<style scoped>
+.v-card {
+  border-radius: 8px;
+}
+
+.v-card-title {
+  background-color: #f5f5f5;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+</style>

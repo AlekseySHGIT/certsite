@@ -231,7 +231,7 @@ const error = ref('')
 
 const formData = ref({
   name: '',
-  email: '',
+  email: 'admin',
   phone: '',
   inn: '',
   ogrn: '',
@@ -242,7 +242,7 @@ const formData = ref({
   contractDate: '',
   edsNumber: '',
   edsDate: '',
-  password: '',
+  password: 'admin',
   passwordConfirm: '',
   agreeTerms: false
 })

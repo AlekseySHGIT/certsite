@@ -3,36 +3,28 @@
     <v-container class="create-application">
       <v-row justify="center">
         <v-col cols="12" style="max-width: 600px">
-          <!-- Task Type Selection -->
-          <v-card class="mb-4" variant="outlined" elevation="1">
-            <v-card-title class="text-h5 px-4 py-3 bg-grey-lighten-4">
-              Новая заявка
-            </v-card-title>
-            <v-card-text class="pa-4">
-              <v-combobox
-                v-model="selectedType"
-                :items="taskTypes"
-                label="Выберите тип задачи"
-                item-title="title"
-                item-value="value"
-                variant="outlined"
-                density="comfortable"
-                hide-details="auto"
-                required
-                clearable
-                :rules="[v => !!v || 'Тип задачи обязателен']"
-              >
-                <template v-slot:selection="{ item }">
-                  {{ item.raw.title }}
-                </template>
-                <template v-slot:item="{ props, item }">
-                  <v-list-item v-bind="props">
-                    <v-list-item-title>{{ item.raw.title }}</v-list-item-title>
-                  </v-list-item>
-                </template>
-              </v-combobox>
-            </v-card-text>
-          </v-card>
+          <!-- Task Type Selector -->
+          <div class="task-type-selector">
+            <v-card flat class="task-type-container">
+              <v-row no-gutters>
+                <v-col v-for="type in taskTypes" :key="type.value" cols="12" sm="6" md="3" lg="auto">
+                  <v-card
+                    :class="['task-type-card', { 'selected': selectedType === type.value }]"
+                    flat
+                    ripple
+                    @click="selectType(type.value)"
+                  >
+                    <div class="task-type-content">
+                      <v-icon size="32" :color="selectedType === type.value ? 'primary' : 'grey-darken-1'">
+                        {{ type.icon }}
+                      </v-icon>
+                      <div class="task-type-title">{{ type.title }}</div>
+                    </div>
+                  </v-card>
+                </v-col>
+              </v-row>
+            </v-card>
+          </div>
 
           <v-container fluid class="pa-4 bg-grey-lighten-4" style="max-width: 600px; margin: 0 auto;">
             <h2 class="text-h5 mb-4">{{ getFormTitle }}</h2>
@@ -522,23 +514,52 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../store/auth'
 import Docxtemplater from 'docxtemplater'
 import PizZip from 'pizzip'
 import { saveAs } from 'file-saver'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const taskTypes = [
-  { title: 'ТЯЖЕЛАЯ ПРОМЫШЛЕННОСТЬ', value: 'heavy' },
-  { title: 'ЛЕГКАЯ ПРОМЫШЛЕННОСТЬ', value: 'light' },
-  { title: 'ОТКАЗНОЕ ПИСЬМО', value: 'rejection' },
-  { title: 'РУКОВОДСТВО ПО ЭКСПЛУАТАЦИИ', value: 'manual' },
-  { title: 'ПАСПОРТ ПРОДУКЦИИ', value: 'passport' },
-  { title: 'ОБОСНОВАНИЕ БЕЗОПАСНОСТИ', value: 'safety' },
-  { title: 'ТУ', value: 'tu' }
+  { 
+    title: 'Легкая промышленность',
+    value: 'light',
+    icon: 'mdi-tshirt-crew'
+  },
+  { 
+    title: 'Тяжелая промышленность',
+    value: 'heavy',
+    icon: 'mdi-factory'
+  },
+  { 
+    title: 'Отказное письмо',
+    value: 'rejection',
+    icon: 'mdi-file-document-outline'
+  },
+  { 
+    title: 'Руководство по эксплуатации',
+    value: 'manual',
+    icon: 'mdi-book-open-variant'
+  },
+  { 
+    title: 'Паспорт продукции',
+    value: 'passport',
+    icon: 'mdi-card-account-details'
+  },
+  { 
+    title: 'Обоснование безопасности',
+    value: 'safety',
+    icon: 'mdi-shield-check'
+  },
+  { 
+    title: 'ТУ',
+    value: 'tu',
+    icon: 'mdi-file-cog'
+  }
 ]
 
 const selectedType = ref(null)
@@ -778,6 +799,17 @@ watch(() => formData.value.applicant, (newVal, oldVal) => {
   }
 })
 
+// Watch for route changes to update selected type
+watch(
+  () => route.query.type,
+  (newType) => {
+    if (newType && taskTypes.some(t => t.value === newType)) {
+      selectedType.value = newType
+    }
+  },
+  { immediate: true }
+)
+
 // Watch for tab changes to update technical regulation options
 watch(() => selectedType.value, () => {
   formData.value.technicalRegulation = []
@@ -796,11 +828,15 @@ onMounted(() => {
   fillFromUserProfile()
   
   // Check if there's a type parameter in the route query
-  const { type } = router.currentRoute.value.query
+  const { type } = route.query
   if (type && ['heavy', 'light', 'rejection', 'manual', 'passport', 'safety', 'tu'].includes(type)) {
     selectedType.value = taskTypes.find(t => t.value === type)
   }
 })
+
+const selectType = (type) => {
+  selectedType.value = type
+}
 </script>
 
 <style scoped>
@@ -819,5 +855,51 @@ onMounted(() => {
   .create-application {
     padding: 8px;
   }
+}
+
+.task-type-selector {
+  background: white;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.task-type-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.task-type-card {
+  cursor: pointer;
+  padding: 16px;
+  transition: all 0.3s ease;
+  border-bottom: 2px solid transparent;
+  height: 100%;
+}
+
+.task-type-card:hover {
+  background-color: rgba(var(--v-theme-primary), 0.05);
+}
+
+.task-type-card.selected {
+  border-bottom-color: rgb(var(--v-theme-primary));
+  background-color: rgba(var(--v-theme-primary), 0.05);
+}
+
+.task-type-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.task-type-title {
+  font-size: 14px;
+  line-height: 1.2;
+  color: rgba(0, 0, 0, 0.87);
+  font-weight: 500;
+}
+
+.selected .task-type-title {
+  color: rgb(var(--v-theme-primary));
 }
 </style>
