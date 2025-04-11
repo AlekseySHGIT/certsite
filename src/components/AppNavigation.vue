@@ -33,82 +33,22 @@
       </template>
 
       <!-- Applications Section - only for authenticated users -->
-      <v-list-group 
-        v-if="authStore.isAuthenticated"
-        value="applications-group"
-      >
-        <template v-slot:activator="{ props }">
-          <v-list-item
-            v-bind="props"
-            prepend-icon="mdi-file-document-multiple"
-            title="Заявки"
-            value="applications-menu"
-          ></v-list-item>
-        </template>
-
+      <template v-if="authStore.isAuthenticated">
         <v-list-item
-          prepend-icon="mdi-factory"
-          title="Тяжелая промышленность"
-          value="applications-heavy"
-          to="/applications/create"
-          :custom-value="{ type: 'heavy' }"
-          @click="selectApplicationType('heavy')"
+          prepend-icon="mdi-file-document-multiple"
+          title="Заявки"
+          value="applications"
+          to="/applications"
         ></v-list-item>
         
         <v-list-item
-          prepend-icon="mdi-tshirt-crew"
-          title="Легкая промышленность"
-          value="applications-light"
-          to="/applications/create"
-          :custom-value="{ type: 'light' }"
-          @click="selectApplicationType('light')"
+          prepend-icon="mdi-plus-circle"
+          title="Создать заявку"
+          value="create-application"
+          to="/application/create"
+          class="ml-4"
         ></v-list-item>
-
-        <v-list-item
-          prepend-icon="mdi-close-circle"
-          title="Отказные письма"
-          value="applications-rejection"
-          to="/applications/create"
-          :custom-value="{ type: 'rejection' }"
-          @click="selectApplicationType('rejection')"
-        ></v-list-item>
-
-        <v-list-item
-          prepend-icon="mdi-book-open"
-          title="Руководства по эксплуатации"
-          value="applications-manual"
-          to="/applications/create"
-          :custom-value="{ type: 'manual' }"
-          @click="selectApplicationType('manual')"
-        ></v-list-item>
-
-        <v-list-item
-          prepend-icon="mdi-certificate"
-          title="Паспорт продукции"
-          value="applications-passport"
-          to="/applications/create"
-          :custom-value="{ type: 'passport' }"
-          @click="selectApplicationType('passport')"
-        ></v-list-item>
-
-        <v-list-item
-          prepend-icon="mdi-shield-check"
-          title="Обоснование безопасности"
-          value="applications-safety"
-          to="/applications/create"
-          :custom-value="{ type: 'safety' }"
-          @click="selectApplicationType('safety')"
-        ></v-list-item>
-
-        <v-list-item
-          prepend-icon="mdi-file-document"
-          title="ТУ"
-          value="applications-tu"
-          to="/applications/create"
-          :custom-value="{ type: 'tu' }"
-          @click="selectApplicationType('tu')"
-        ></v-list-item>
-      </v-list-group>
+      </template>
 
       <!-- Additional menu items only for authenticated users -->
       <template v-if="authStore.isAuthenticated">

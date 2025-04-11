@@ -5,6 +5,7 @@ import RegisterView from '../views/RegisterView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import NewsView from '../views/NewsView.vue'
 import SettingsView from '../views/SettingsView.vue'
+import ApplicationFormView from '../views/ApplicationFormView.vue'
 import { useAuthStore } from '../stores/auth'
 import { usePermissionStore } from '../stores/permissionStore'
 
@@ -33,43 +34,23 @@ const routes = [
     }
   },
   {
-    path: '/applications/create',
+    path: '/application/create',
     name: 'application-create',
-    component: () => import('../views/ApplicationCreateView.vue'),
-    meta: { 
-      showInMenu: false,
+    component: ApplicationFormView,
+    meta: {
+      requiresAuth: true,
       roles: ['client', 'manager', 'admin'],
-      requiresAuth: true
+      title: 'Создание заявки'
     }
   },
   {
-    path: '/applications/create/light',
-    name: 'application-create-light',
-    component: () => import('../views/LightIndustryView.vue'),
-    meta: { 
-      showInMenu: false,
-      roles: ['client', 'manager', 'admin'],
-      requiresAuth: true
-    }
-  },
-  {
-    path: '/applications/create/heavy',
-    name: 'application-create-heavy',
-    component: () => import('../views/HeavyIndustryView.vue'),
-    meta: { 
-      showInMenu: false,
-      roles: ['client', 'manager', 'admin'],
-      requiresAuth: true
-    }
-  },
-  {
-    path: '/application/:id',
+    path: '/application/:id/edit',
     name: 'application-edit',
-    component: () => import('../views/ApplicationEditView.vue'),
-    meta: { 
-      showInMenu: false,
+    component: ApplicationFormView,
+    meta: {
+      requiresAuth: true,
       roles: ['client', 'manager', 'admin'],
-      requiresAuth: true
+      title: 'Редактирование заявки'
     }
   },
   {
@@ -157,6 +138,30 @@ const routes = [
       showInMenu: true,
       roles: ['guest', 'client', 'manager', 'admin']
     }
+  },
+  {
+    path: '/applications/create',
+    redirect: '/application/create'
+  },
+  {
+    path: '/applications/create/heavy',
+    redirect: to => ({ path: '/application/create', query: { type: 'heavy' } })
+  },
+  {
+    path: '/applications/create/light',
+    redirect: to => ({ path: '/application/create', query: { type: 'light' } })
+  },
+  {
+    path: '/applications/create/rejection',
+    redirect: to => ({ path: '/application/create', query: { type: 'rejection' } })
+  },
+  {
+    path: '/applications/create/protocol',
+    redirect: to => ({ path: '/application/create', query: { type: 'protocol' } })
+  },
+  {
+    path: '/applications/create/technical',
+    redirect: to => ({ path: '/application/create', query: { type: 'technical' } })
   },
   {
     path: '/:pathMatch(.*)*',

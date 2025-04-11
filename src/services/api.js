@@ -110,5 +110,76 @@ export const api = {
         });
       }, 1000);
     });
+  },
+
+  // Create new application
+  async createApplication(data) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        console.log('Creating new application:', data);
+        
+        // Generate a new ID for the application
+        const newId = `ЛП-${Math.floor(Math.random() * 1000)}`;
+        
+        // Create new application object
+        const newApplication = {
+          id: newId,
+          date: new Date().toLocaleDateString('ru-RU'),
+          time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+          title: data.title,
+          client: data.applicant,
+          manager: data.manager || '',
+          expert: data.expert || 'Не закреплен',
+          type: data.taskType,
+          amount: data.cost || 0,
+          status: data.status || 'Новая',
+          ...data
+        };
+        
+        // Add to mock applications array
+        mockApplications.unshift(newApplication);
+        
+        resolve({
+          success: true,
+          data: newApplication,
+          message: 'Application created successfully'
+        });
+      }, 500);
+    });
+  },
+  
+  // Update existing application
+  async updateApplication(id, data) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        console.log(`Updating application ${id}:`, data);
+        
+        // Find the application to update
+        const index = mockApplications.findIndex(app => app.id === id);
+        
+        if (index !== -1) {
+          // Update the application
+          mockApplications[index] = {
+            ...mockApplications[index],
+            ...data,
+            title: data.title,
+            client: data.applicant,
+            manager: data.manager || '',
+            expert: data.expert || 'Не закреплен',
+            type: data.taskType,
+            amount: data.cost || 0,
+            status: data.status || mockApplications[index].status
+          };
+          
+          resolve({
+            success: true,
+            data: mockApplications[index],
+            message: 'Application updated successfully'
+          });
+        } else {
+          reject(new Error('Application not found'));
+        }
+      }, 500);
+    });
   }
 }

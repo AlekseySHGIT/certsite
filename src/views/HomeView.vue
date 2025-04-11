@@ -2,7 +2,7 @@
   <v-container fluid>
     <v-row>
       <v-col cols="12">
-        <v-card class="mb-4" variant="outlined">
+        <v-card class="mb-4">
           <v-card-title class="text-h5 font-weight-bold">
             Добро пожаловать в Центр сертификации
           </v-card-title>
