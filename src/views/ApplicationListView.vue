@@ -21,6 +21,30 @@
     <v-container fluid class="pa-4">
       <!-- Actions Bar -->
       <div class="d-flex justify-space-between align-center mb-4">
+        <!-- Search and Sort -->
+        <div class="d-flex align-center flex-grow-1 mr-4">
+         
+          
+          <v-btn
+            variant="outlined"
+            :prepend-icon="sortOrder === 'desc' ? 'mdi-sort-clock-descending' : 'mdi-sort-clock-ascending'"
+            @click="toggleSortOrder"
+            class="mr-4"
+          >
+            {{ sortOrder === 'desc' ? 'Сначала новые' : 'Сначала старые' }}
+          </v-btn>
+          <v-text-field
+            v-model="searchQuery"
+            prepend-icon="mdi-magnify"
+            label="Поиск по заявкам"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            class="mr-4"
+            style="max-width: 300px;"
+          ></v-text-field>
+        </div>
+
         <!-- Export Button -->
         <v-btn
           color="success"
@@ -29,7 +53,7 @@
           variant="elevated"
           :disabled="!selectedApplications.length"
           rounded
-          class="mr-2"
+          class="mr-6"
         >
           ЭКСПОРТ ВЫБРАННЫХ ({{ selectedApplications.length }})
         </v-btn>
@@ -43,7 +67,7 @@
           variant="elevated"
           :disabled="!selectedApplications.length"
           rounded
-          class="mr-auto"
+          class="mr-6"
         >
           ОТПРАВИТЬ В FSA
         </v-btn>
@@ -94,13 +118,11 @@
               <div class="flex-grow-1 pa-4">
                 <!-- Title and status row -->
                 <div class="d-flex justify-space-between align-center mb-3">
-                  <div class="text-body-1 font-weight-medium">
-                    <router-link 
-                      :to="`/application/${application.id}/view`" 
-                      class="text-decoration-none text-primary"
-                    >
-                      {{ application.title || `Заявка на сертификацию ${application.appNumber || index + 1}` }}
-                    </router-link>
+                  <div 
+                    class="text-body-1 font-weight-medium text-primary cursor-pointer"
+                    @click="editApplication(application.id)"
+                  >
+                    {{ application.title || `Заявка на сертификацию ${application.appNumber || index + 1}` }}
                   </div>
                   <div>
                     <v-chip
@@ -178,13 +200,22 @@
                     </div>
                   </div>
                 </div>
+                <div class="d-flex">
+                  <div class="text-body-2" style="width: 70%;">
+                    <div class="d-flex">
+                      <div class="font-weight-medium" style="width: 100px;">Эксперт:</div>
+                      <div>{{ application.expert || 'Не закреплен' }}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </v-card-item>
           
           <v-card-actions class="pa-4 pt-0">
-            <!-- Edit button - available to all authenticated users -->
+            <!-- Edit button - available to all authenticated users except for completed applications -->
             <v-btn
+              v-if="application.status !== 'completed'"
               prepend-icon="mdi-pencil"
               variant="outlined"
               color="grey-darken-1"
@@ -193,36 +224,63 @@
               density="comfortable"
               @click="editApplication(application.id)"
             >
-              ВНЕСТИ ПРАВКИ
+              Редактировать
             </v-btn>
-            
-            <!-- Approve button - only for managers and admins -->
+
+            <!-- Expert self-assignment button -->
             <v-btn
-              v-if="authStore.canApproveApplications && application.status === ApplicationStatus.PENDING"
-              prepend-icon="mdi-check"
+              v-if="authStore.canSelfAssignApplications && !application.expertId"
+              prepend-icon="mdi-account-check"
               variant="outlined"
-              color="success"
+              color="primary"
               size="small"
               class="ml-2 text-uppercase"
               density="comfortable"
-              @click="approveApplication(application)"
+              @click="selfAssignApplication(application)"
             >
-              УТВЕРДИТЬ
+              Взять в работу
             </v-btn>
-            
-            <!-- Reject button - only for managers and admins -->
+
+            <!-- Admin expert assignment button -->
             <v-btn
-              v-if="authStore.canApproveApplications && application.status === ApplicationStatus.PENDING"
-              prepend-icon="mdi-close"
+              v-if="authStore.canAssignApplications && !application.expertId"
+              prepend-icon="mdi-account-plus"
               variant="outlined"
-              color="error"
+              color="info"
               size="small"
               class="ml-2 text-uppercase"
               density="comfortable"
-              @click="rejectApplication(application)"
+              @click="showAssignExpertDialog(application)"
             >
-              ОТКЛОНИТЬ
+              Назначить эксперта
             </v-btn>
+
+            <!-- Approve/Reject buttons - only for experts with assigned applications -->
+            <template v-if="authStore.isExpert && application.expertId === authStore.user?.id">
+              <v-btn
+                prepend-icon="mdi-check"
+                variant="outlined"
+                color="success"
+                size="small"
+                class="ml-2 text-uppercase"
+                density="comfortable"
+                @click="approveApplication(application)"
+              >
+                Утвердить
+              </v-btn>
+              
+              <v-btn
+                prepend-icon="mdi-close"
+                variant="outlined"
+                color="error"
+                size="small"
+                class="ml-2 text-uppercase"
+                density="comfortable"
+                @click="rejectApplication(application)"
+              >
+                Отклонить
+              </v-btn>
+            </template>
             
             <!-- Assign to me button - only for managers -->
             <v-btn
@@ -235,7 +293,7 @@
               density="comfortable"
               @click="assignToMe(application)"
             >
-              ВЗЯТЬ В РАБОТУ
+              Взять в работу
             </v-btn>
             
             <!-- Certificate button - for all authenticated users -->
@@ -261,239 +319,20 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useApplicationStore } from '@/stores/applicationStore'
 import { Document, Paragraph, TextRun, AlignmentType } from 'docx'
 import { saveAs } from 'file-saver'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const applicationStore = useApplicationStore()
 
 // Reactive state
 const activeTab = ref('all')
 const selectedApplications = ref([])
-const applications = ref([
-  {
-    id: 1,
-    title: 'Подтверждение соответствия продукции согласно дог',
-    docNumber: '470',
-    docDate: '04 апреля 2021',
-    appNumber: '569',
-    date: '26.07.2024',
-    time: '16:22',
-    status: 'completed',
-    statusDetails: '1',
-    cost: '5100.00',
-    manager: 'Петров И.С.',
-    expert: 'Не закреплен',
-    type: 'light',
-    selected: false,
-    declarationType: 'Декларирование',
-    applicant: 'ООО Тестовая Компания',
-    thirdParty: 'Нет',
-    inn: '7712345678',
-    regType: 'ОГРН',
-    regNumber: '1234567890123',
-    legalAddress: 'г. Москва, ул. Тестовая, д. 1',
-    actualAddress: 'г. Москва, ул. Тестовая, д. 1',
-    phone: '+7 (495) 123-45-67',
-    email: 'test@company.ru',
-    directorName: 'Иванов Иван Иванович',
-    directorPosition: 'Генеральный директор',
-    onBehalf: 'Генерального директора',
-    productName: 'Одежда текстильная: футболки, майки',
-    tnVedCode: '6109100000',
-    storageConditions: 'Хранить в сухом помещении при температуре от +5 до +25°C',
-    productDocument: 'ГОСТ 31408-2009',
-    standards: 'ГОСТ 31408-2009, ГОСТ Р ИСО 3758-2007',
-    manufacturerSameAsApplicant: 'Да',
-    foreignManufacturer: 'Нет',
-    manufacturerName: 'ООО Тестовая Компания',
-    manufacturerLegalAddress: 'г. Москва, ул. Тестовая, д. 1',
-    manufacturerActualAddress: 'г. Москва, ул. Тестовая, д. 1',
-    additionalFactories: '',
-    productionType: 'Серийный выпуск',
-    scheme: '1Д - серийный выпуск + срок действия',
-    validityPeriod: '3 года',
-    laboratory: 'ГК ОС «Промбезопасность»',
-    ownProtocol: 'Нет',
-    protocolCount: '1',
-    comments: '',
-    regulations: [
-      { name: 'ТР ТС 005 2011 "О безопасности упаковки"', selected: false },
-      { name: 'ТР ТС 009 2011 "О безопасности парфюмерно-косметической продукции"', selected: false },
-      { name: 'ТР ТС 007 2011 "О безопасности продукции, предназначенной для детей и подростков"', selected: false },
-      { name: 'ТР ТС 017/2011 "О безопасности продукции легкой промышленности"', selected: true },
-      { name: 'ТР ТС 025/2012 «О безопасности мебельной продукции»', selected: false },
-      { name: 'ПИЩА', selected: false }
-    ]
-  },
-  {
-    id: 2,
-    title: 'Подтверждение соответствия продукции согласно дог',
-    docNumber: '470',
-    docDate: '04 апреля 2021',
-    appNumber: '568',
-    date: '26.07.2024',
-    time: '16:20',
-    status: 'pending',
-    statusDetails: '1',
-    cost: '5100.00',
-    manager: 'Сидоров В.М.',
-    expert: 'Не закреплен',
-    type: 'light',
-    selected: false,
-    declarationType: 'Сертификация',
-    applicant: 'ИП Тестов Тест Тестович',
-    thirdParty: 'Нет',
-    inn: '771234567890',
-    regType: 'ОГРНИП',
-    regNumber: '123456789012345',
-    legalAddress: 'г. Москва, ул. Примерная, д. 2',
-    actualAddress: 'г. Москва, ул. Примерная, д. 2',
-    phone: '+7 (495) 234-56-78',
-    email: 'test@example.ru',
-    directorName: 'Тестов Тест Тестович',
-    directorPosition: 'Индивидуальный предприниматель',
-    onBehalf: 'Индивидуального предпринимателя',
-    productName: 'Одежда текстильная: брюки, шорты',
-    tnVedCode: '6203410000',
-    storageConditions: 'Хранить в сухом помещении при температуре от +5 до +25°C',
-    productDocument: 'ГОСТ 31409-2009',
-    standards: 'ГОСТ 31409-2009, ГОСТ Р ИСО 3758-2007',
-    manufacturerSameAsApplicant: 'Да',
-    foreignManufacturer: 'Нет',
-    manufacturerName: 'ИП Тестов Тест Тестович',
-    manufacturerLegalAddress: 'г. Москва, ул. Примерная, д. 2',
-    manufacturerActualAddress: 'г. Москва, ул. Примерная, д. 2',
-    additionalFactories: '',
-    productionType: 'Серийный выпуск',
-    scheme: '1Д - серийный выпуск + срок действия',
-    validityPeriod: '3 года',
-    laboratory: 'ГК ОС «Промбезопасность»',
-    ownProtocol: 'Нет',
-    protocolCount: '1',
-    comments: '',
-    regulations: [
-      { name: 'ТР ТС 005 2011 "О безопасности упаковки"', selected: false },
-      { name: 'ТР ТС 009 2011 "О безопасности парфюмерно-косметической продукции"', selected: false },
-      { name: 'ТР ТС 007 2011 "О безопасности продукции, предназначенной для детей и подростков"', selected: false },
-      { name: 'ТР ТС 017/2011 "О безопасности продукции легкой промышленности"', selected: true },
-      { name: 'ТР ТС 025/2012 «О безопасности мебельной продукции»', selected: false },
-      { name: 'ПИЩА', selected: false }
-    ]
-  },
-  {
-    id: 3,
-    title: 'Подтверждение соответствия продукции согласно дог',
-    docNumber: '470',
-    docDate: '03 апреля 2021',
-    appNumber: '566',
-    date: '02.08.2024',
-    time: '13:15',
-    status: 'draft',
-    statusDetails: '1',
-    cost: '1500.00',
-    manager: 'Не закреплен',
-    type: 'light',
-    selected: false,
-    additionalInfo: '482'
-  },
-  {
-    id: 4,
-    title: 'Паспорт продукции согласно дог',
-    docNumber: '471',
-    docDate: '05 апреля 2021',
-    appNumber: '570',
-    date: '27.07.2024',
-    time: '10:30',
-    status: 'completed',
-    statusDetails: '1',
-    cost: '980.00',
-    manager: 'Петров И.С.',
-    type: 'passport',
-    selected: false,
-    additionalInfo: '483'
-  },
-  {
-    id: 5,
-    title: 'Отказное письмо согласно дог',
-    docNumber: '472',
-    docDate: '06 апреля 2021',
-    appNumber: '571',
-    date: '28.07.2024',
-    time: '14:45',
-    status: 'in_progress',
-    statusDetails: '1',
-    cost: '750.00',
-    manager: 'Иванов А.П.',
-    type: 'rejection',
-    selected: false,
-    additionalInfo: '484'
-  },
-  {
-    id: 6,
-    title: 'Руководство по эксплуатации согласно дог',
-    docNumber: '473',
-    docDate: '07 апреля 2021',
-    appNumber: '572',
-    date: '29.07.2024',
-    time: '09:15',
-    status: 'completed',
-    statusDetails: '1',
-    cost: '1300.00',
-    manager: 'Сидоров В.М.',
-    type: 'manual',
-    selected: false,
-    additionalInfo: '485'
-  },
-  {
-    id: 7,
-    title: 'Обоснование безопасности согласно дог',
-    docNumber: '474',
-    docDate: '08 апреля 2021',
-    appNumber: '573',
-    date: '30.07.2024',
-    time: '11:20',
-    status: 'pending',
-    statusDetails: '1',
-    cost: '1450.00',
-    manager: 'Не закреплен',
-    type: 'safety',
-    selected: false,
-    additionalInfo: '486'
-  },
-  {
-    id: 8,
-    title: 'ТУ согласно дог',
-    docNumber: '475',
-    docDate: '09 апреля 2021',
-    appNumber: '574',
-    date: '31.07.2024',
-    time: '16:40',
-    status: 'draft',
-    statusDetails: '1',
-    cost: '1200.00',
-    manager: 'Не закреплен',
-    type: 'tu',
-    selected: false,
-    additionalInfo: '487'
-  },
-  {
-    id: 9,
-    title: 'Подтверждение соответствия продукции согласно дог',
-    docNumber: '476',
-    docDate: '10 апреля 2021',
-    appNumber: '575',
-    date: '01.08.2024',
-    time: '13:10',
-    status: 'in_progress',
-    statusDetails: '1',
-    cost: '1650.00',
-    manager: 'Петров И.С.',
-    type: 'heavy',
-    selected: false,
-    additionalInfo: '488'
-  }
-])
+const applications = computed(() => applicationStore.applications)
+const searchQuery = ref('')
+const sortOrder = ref('desc')
 
 // Application statuses
 const ApplicationStatus = {
@@ -516,13 +355,100 @@ const applicationTypeMap = {
   'tu': 'ТУ'
 }
 
-// Computed properties
+// Helper function to recursively search through objects
+const searchInValue = (obj, query) => {
+  // Handle null/undefined
+  if (obj === null || obj === undefined) return false
+
+  // Convert to string if it's a primitive
+  if (typeof obj !== 'object') {
+    return String(obj).toLowerCase().includes(query)
+  }
+
+  // If it's an array, search through each element
+  if (Array.isArray(obj)) {
+    return obj.some(item => searchInValue(item, query))
+  }
+
+  // For objects, search through all values
+  return Object.values(obj).some(value => {
+    if (typeof value === 'string' || typeof value === 'number') {
+      const match = String(value).toLowerCase().includes(query)
+      if (match) {
+        console.log('Found match:', value)
+      }
+      return match
+    }
+    return searchInValue(value, query)
+  })
+}
+
 const filteredApplications = computed(() => {
-  return applications.value.filter(app => {
-    if (activeTab.value === 'all') return true
-    return app.type === activeTab.value
-  }).sort((a, b) => new Date(b.date) - new Date(a.date))
+  let filtered = applications.value
+
+  // Filter by search query
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase().trim()
+    console.log('Searching for:', query)
+    
+    filtered = filtered.filter(app => {
+      // Explicitly check each important field
+      const fieldsToSearch = {
+        inn: app.inn,
+        email: app.email,
+        title: app.title,
+        applicant: app.applicant,
+        phone: app.phone,
+        appNumber: app.appNumber,
+        manager: app.manager,
+        status: app.status,
+        regNumber: app.regNumber,
+        legalAddress: app.legalAddress,
+        actualAddress: app.actualAddress,
+        directorName: app.directorName,
+        productName: app.productName,
+        manufacturerName: app.manufacturerName
+      }
+
+      // Log the application's searchable fields
+      console.log('Application fields:', app.id, fieldsToSearch)
+
+      // Check each field
+      for (const [field, value] of Object.entries(fieldsToSearch)) {
+        if (value && String(value).toLowerCase().includes(query)) {
+          console.log(`Found match in ${field}:`, value)
+          return true
+        }
+      }
+
+      // Check regulations
+      if (app.regulations?.some(reg => reg.name.toLowerCase().includes(query))) {
+        console.log('Found match in regulations')
+        return true
+      }
+
+      return false
+    })
+  }
+
+  // Filter by active tab
+  if (activeTab.value !== 'all') {
+    filtered = filtered.filter(app => app.type === activeTab.value)
+  }
+
+  // Sort by date
+  filtered = [...filtered].sort((a, b) => {
+    const dateA = new Date(a.date.split('.').reverse().join('-') + ' ' + a.time)
+    const dateB = new Date(b.date.split('.').reverse().join('-') + ' ' + b.time)
+    return sortOrder.value === 'desc' ? dateB - dateA : dateA - dateB
+  })
+
+  return filtered
 })
+
+const toggleSortOrder = () => {
+  sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc'
+}
 
 // Methods
 const getApplicationTypeName = (typeCode) => {
@@ -554,7 +480,7 @@ const getStatusText = (status) => {
 }
 
 const updateSelectedApplications = () => {
-  selectedApplications.value = applications.value.filter(app => app.selected)
+  selectedApplications.value = applicationStore.applications.filter(app => app.selected)
 }
 
 const createApplication = () => {
@@ -562,22 +488,50 @@ const createApplication = () => {
 }
 
 const editApplication = (id) => {
-  router.push(`/application/${id}`)
+  router.push(`/application/${id}/edit`)
+}
+
+const selfAssignApplication = (application) => {
+  applicationStore.selfAssignApplication(application.id)
+}
+
+const showAssignExpertDialog = (application) => {
+  currentApplication.value = application
+  showAssignDialog.value = true
+}
+
+const assignExpert = () => {
+  if (currentApplication.value && selectedExpert.value) {
+    applicationStore.adminAssignApplication(
+      currentApplication.value.id,
+      selectedExpert.value.id,
+      selectedExpert.value.name
+    )
+    showAssignDialog.value = false
+    currentApplication.value = null
+    selectedExpert.value = null
+  }
 }
 
 const approveApplication = (application) => {
-  application.status = ApplicationStatus.APPROVED
+  const updatedApp = { ...application, status: ApplicationStatus.APPROVED }
+  applicationStore.updateApplication(updatedApp)
   alert(`Заявка №${application.appNumber} успешно утверждена.`)
 }
 
 const rejectApplication = (application) => {
-  application.status = ApplicationStatus.REJECTED
+  const updatedApp = { ...application, status: ApplicationStatus.REJECTED }
+  applicationStore.updateApplication(updatedApp)
   alert(`Заявка №${application.appNumber} отклонена.`)
 }
 
 const assignToMe = (application) => {
-  application.manager = authStore.user?.name || 'Текущий пользователь'
-  application.status = ApplicationStatus.IN_PROGRESS
+  const updatedApp = {
+    ...application,
+    manager: authStore.user?.name || 'Текущий пользователь',
+    status: ApplicationStatus.IN_PROGRESS
+  }
+  applicationStore.updateApplication(updatedApp)
   alert(`Заявка №${application.appNumber} взята в работу.`)
 }
 

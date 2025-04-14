@@ -13,7 +13,24 @@ const mockUsers = [
     ogrn: '1234567890123',
     physicalAddress: 'г.Москва, Романшково - Уделеный проезд, д.10 офис 324',
     legalAddress: 'г.Москва, Романшково - Уделеный проезд, д.10 офис 324',
-    position: 'Генеральный директор'
+    position: 'Генеральный директор',
+    assignedClients: [] // Clients assigned to this manager
+  },
+  {
+    email: 'expert@expert.cc',
+    password: 'expert@expert.cc',
+    name: 'Петр Николаевич',
+    role: 'expert',
+    phone: '+7 (495) 234-56-78',
+    position: 'Эксперт',
+    specialization: 'Легкая промышленность'
+  },
+  {
+    email: 'admin@admin.cc',
+    password: 'admin@admin.cc',
+    name: 'Администратор',
+    role: 'admin',
+    position: 'Администратор системы'
   }
 ]
 
@@ -22,19 +39,21 @@ export const useAuthStore = defineStore('auth', {
     user: null,
     role: 'guest',
     isAuthenticated: false,
-    userApplications: []
+    userApplications: [],
+    assignedClients: [] // For managers
   }),
 
   actions: {
-    login(credentials) {
-      const user = mockUsers.find(u => u.email === credentials.email && u.password === credentials.password)
+    login(email, password) {
+      const user = mockUsers.find(u => u.email === email && u.password === password)
       if (user) {
         this.user = { ...user }
         this.role = user.role
         this.isAuthenticated = true
+        this.assignedClients = user.assignedClients || []
         return true
       }
-      return false
+      throw new Error('Неверный email или пароль')
     },
 
     logout() {
@@ -42,6 +61,7 @@ export const useAuthStore = defineStore('auth', {
       this.role = 'guest'
       this.isAuthenticated = false
       this.userApplications = []
+      this.assignedClients = []
     },
 
     addApplication(application) {
@@ -53,12 +73,31 @@ export const useAuthStore = defineStore('auth', {
       if (index !== -1) {
         this.userApplications[index] = { ...this.userApplications[index], ...updatedApplication }
       }
+    },
+
+    assignClientToManager(clientId) {
+      if (this.role === 'manager' && !this.assignedClients.includes(clientId)) {
+        this.assignedClients.push(clientId)
+      }
+    },
+
+    removeClientFromManager(clientId) {
+      if (this.role === 'manager') {
+        this.assignedClients = this.assignedClients.filter(id => id !== clientId)
+      }
     }
   },
 
   getters: {
     getUserName: (state) => state.user?.name || 'Гость',
     getUserRole: (state) => state.role,
-    getRecentApplications: (state) => state.userApplications.slice(0, 5)
+    getRecentApplications: (state) => state.userApplications.slice(0, 5),
+    isAdmin: (state) => state.role === 'admin',
+    isManager: (state) => state.role === 'manager',
+    isExpert: (state) => state.role === 'expert',
+    canAssignApplications: (state) => ['admin'].includes(state.role),
+    canViewClientInfo: (state) => ['admin', 'manager'].includes(state.role),
+    canSelfAssignApplications: (state) => ['expert'].includes(state.role),
+    getAssignedClients: (state) => state.assignedClients
   }
 })

@@ -24,6 +24,10 @@ export const usePermissionStore = defineStore('permissions', {
             paths: ['/', '/applications', '/personal-account', '/profile', '/news', '/about'],
             actions: ['view', 'create', 'edit']
           },
+          'expert': {
+            paths: ['/', '/applications', '/personal-account', '/profile', '/news', '/about'],
+            actions: ['view', 'edit', 'approve', 'reject', 'self-assign']
+          },
           'manager': {
             paths: ['/', '/applications', '/personal-account', '/profile', '/news', '/about'],
             actions: ['view', 'create', 'edit', 'approve', 'reject']

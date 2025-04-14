@@ -25,7 +25,7 @@
         prepend-icon="mdi-account"
         to="/profile"
       >
-        ЛИЧНЫЙ КАБИНЕТ | {{ authStore.user.name }}
+        ЛИЧНЫЙ КАБИНЕТ | {{ authStore.user.name }} ({{ getRoleName(authStore.role) }})
       </v-btn>
       
       <v-btn
@@ -68,6 +68,17 @@ import { useRoute } from 'vue-router'
 const router = useRouter()
 const authStore = useAuthStore()
 const route = useRoute()
+
+const getRoleName = (role) => {
+  const roles = {
+    admin: 'Администратор',
+    manager: 'Менеджер',
+    expert: 'Эксперт',
+    client: 'Клиент',
+    guest: 'Гость'
+  }
+  return roles[role] || role
+}
 
 const logout = () => {
   authStore.logout()

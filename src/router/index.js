@@ -18,7 +18,7 @@ const routes = [
       title: 'Главная',
       icon: 'mdi-home',
       showInMenu: true,
-      roles: ['guest', 'client', 'manager', 'admin']
+      roles: ['guest', 'client', 'manager', 'admin', 'expert']
     }
   },
   {
@@ -29,40 +29,33 @@ const routes = [
       title: 'Заявки',
       icon: 'mdi-file-document-multiple',
       showInMenu: true,
-      roles: ['client', 'manager', 'admin'],
+      roles: ['client', 'manager', 'admin', 'expert'],
       requiresAuth: true
     }
   },
   {
     path: '/application/create',
     name: 'application-create',
-    component: ApplicationFormView,
+    component: () => import('../views/ApplicationFormView.vue'),
     meta: {
-      requiresAuth: true,
+      showInMenu: false,
       roles: ['client', 'manager', 'admin'],
+      requiresAuth: true,
       title: 'Создание заявки'
     }
   },
   {
     path: '/application/:id/edit',
     name: 'application-edit',
-    component: ApplicationFormView,
+    component: () => import('../views/ApplicationFormView.vue'),
     meta: {
+      showInMenu: false,
+      roles: ['client', 'manager', 'admin', 'expert'],
       requiresAuth: true,
-      roles: ['client', 'manager', 'admin'],
       title: 'Редактирование заявки'
     }
   },
-  {
-    path: '/application/:id/view',
-    name: 'application-detail',
-    component: () => import('../views/ApplicationDetailView.vue'),
-    meta: { 
-      showInMenu: false,
-      roles: ['client', 'manager', 'admin'],
-      requiresAuth: true
-    }
-  },
+ 
   {
     path: '/personal-account',
     name: 'personal-account',
@@ -71,7 +64,7 @@ const routes = [
       title: 'Личный кабинет',
       icon: 'mdi-account',
       showInMenu: true,
-      roles: ['client', 'manager', 'admin'],
+      roles: ['client', 'manager', 'admin', 'expert'],
       requiresAuth: true
     }
   },
@@ -101,7 +94,7 @@ const routes = [
       title: 'Профиль',
       icon: 'mdi-account',
       showInMenu: true,
-      roles: ['client', 'manager', 'admin'],
+      roles: ['client', 'manager', 'admin', 'expert'],
       requiresAuth: true
     }
   },
@@ -113,7 +106,7 @@ const routes = [
       title: 'Новости',
       icon: 'mdi-newspaper',
       showInMenu: true,
-      roles: ['guest', 'client', 'manager', 'admin']
+      roles: ['guest', 'client', 'manager', 'admin', 'expert']
     }
   },
   {
@@ -136,7 +129,7 @@ const routes = [
       title: 'О нас',
       icon: 'mdi-information',
       showInMenu: true,
-      roles: ['guest', 'client', 'manager', 'admin']
+      roles: ['guest', 'client', 'manager', 'admin', 'expert']
     }
   },
   {

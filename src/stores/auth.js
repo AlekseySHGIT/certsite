@@ -9,9 +9,14 @@ export const useAuthStore = defineStore('auth', {
   }),
 
   getters: {
-    canApproveApplications: (state) => ['admin', 'manager'].includes(state.role),
-    canEditApplications: (state) => ['admin', 'manager', 'client'].includes(state.role),
-    canViewApplications: (state) => ['admin', 'manager', 'client'].includes(state.role)
+    canApproveApplications: (state) => ['admin', 'manager', 'expert'].includes(state.role),
+    canEditApplications: (state) => ['admin', 'manager', 'client', 'expert'].includes(state.role),
+    canViewApplications: (state) => ['admin', 'manager', 'client', 'expert'].includes(state.role),
+    canSelfAssignApplications: (state) => ['expert'].includes(state.role),
+    canAssignApplications: (state) => ['admin'].includes(state.role),
+    isAdmin: (state) => state.role === 'admin',
+    isManager: (state) => state.role === 'manager',
+    isExpert: (state) => state.role === 'expert'
   },
 
   actions: {
@@ -72,7 +77,33 @@ export const useAuthStore = defineStore('auth', {
         return true
       }
 
-      return false
+      if (email === 'expert@expert.cc' && password === 'expert@expert.cc') {
+        const user = {
+          id: 4,
+          name: 'Петр Николаевич',
+          email: 'expert@expert.cc',
+          role: 'expert',
+          specialization: 'Легкая промышленность'
+        }
+        this.setUser(user)
+        this.setToken('mock_token_101')
+        return true
+      }
+
+      if (email === 'expert2@expert.cc' && password === 'expert2@expert.cc') {
+        const user = {
+          id: 5,
+          name: 'Иван Сергеевич',
+          email: 'expert2@expert.cc',
+          role: 'expert',
+          specialization: 'Тяжелая промышленность'
+        }
+        this.setUser(user)
+        this.setToken('mock_token_102')
+        return true
+      }
+
+      throw new Error('Неверный email или пароль')
     },
 
     async checkAuth() {
@@ -109,6 +140,28 @@ export const useAuthStore = defineStore('auth', {
           name: 'Admin User',
           email: 'admin@admin.cc',
           role: 'admin'
+        })
+        return true
+      }
+
+      if (token === 'mock_token_101') {
+        this.setUser({
+          id: 4,
+          name: 'Петр Николаевич',
+          email: 'expert@expert.cc',
+          role: 'expert',
+          specialization: 'Легкая промышленность'
+        })
+        return true
+      }
+
+      if (token === 'mock_token_102') {
+        this.setUser({
+          id: 5,
+          name: 'Иван Сергеевич',
+          email: 'expert2@expert.cc',
+          role: 'expert',
+          specialization: 'Тяжелая промышленность'
         })
         return true
       }

@@ -3673,7 +3673,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { api } from '../services/api'
+import { useApplicationStore } from '@/stores/applicationStore'
 import HeavyIndustryFormView from './forms/HeavyIndustryFormView.vue'
 import LightIndustryFormView from './forms/LightIndustryFormView.vue'
 import RejectionLetterFormView from './forms/RejectionLetterFormView.vue'
@@ -3685,6 +3685,7 @@ import TechnicalSpecsFormView from './forms/TechnicalSpecsFormView.vue'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const applicationStore = useApplicationStore()
 const saving = ref(false)
 
 // Determine if we're in create or edit mode
@@ -3926,20 +3927,21 @@ const saveApplication = async () => {
     saving.value = true
     
     // Create a new application object
-    const applicationData = { ...formData.value }
-    
-    // Add creation date and time if it's a new application
-    if (isCreateMode.value) {
-      applicationData.date = new Date().toLocaleDateString('ru-RU')
-      applicationData.time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+    const applicationData = { 
+      ...formData.value,
+      id: isCreateMode.value ? applicationStore.applications.length + 1 : Number(route.params.id),
+      date: isCreateMode.value ? new Date().toLocaleDateString('ru-RU') : formData.value.date,
+      time: isCreateMode.value ? new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : formData.value.time,
+      status: formData.value.status || 'draft',
+      selected: false
     }
     
-    // Save the application
-    const result = isCreateMode.value 
-      ? await api.createApplication(applicationData)
-      : await api.updateApplication(applicationData.id, applicationData)
-    
-    console.log('Application saved:', result)
+    // Save the application to the store
+    if (isCreateMode.value) {
+      applicationStore.addApplication(applicationData)
+    } else {
+      applicationStore.updateApplication(applicationData)
+    }
     
     // Navigate back to applications list
     router.push('/applications')
@@ -4002,30 +4004,28 @@ onMounted(async () => {
   // If editing an existing application, load its data
   if (!isCreateMode.value) {
     try {
-      const data = await api.getApplication(route.params.id)
-      if (data) {
-        formData.value = { ...formData.value, ...data }
+      const applicationData = await applicationStore.getApplication(route.params.id)
+      if (applicationData) {
+        console.log('Loading application data:', applicationData)
+        // Set the selected type first so the correct form component loads
+        selectedType.value = applicationData.type
         
-        // Set selected type based on loaded data
-        if (data.taskType) {
-          selectedType.value = data.taskType
-        }
+        // Then update all form fields with a slight delay to ensure form is mounted
+        setTimeout(() => {
+          formData.value = { 
+            ...formData.value, 
+            ...applicationData,
+            // Preserve arrays and objects
+            regulations: applicationData.regulations ? [...applicationData.regulations] : []
+          }
+        }, 100)
+      } else {
+        console.error('Application not found')
+        router.push('/applications')
       }
     } catch (error) {
-      console.error('Failed to load application:', error)
-    }
-  } else {
-    // If creating a new application, check for type in query params
-    const { type } = route.query
-    if (type && taskTypes.value.find(t => t.value === type)) {
-      selectedType.value = type
-      formData.value.taskType = type
-      formData.value.applicationType = taskTypes.value.find(t => t.value === type)?.title || ''
-    } else {
-      // Default to heavy industry if no type specified
-      selectedType.value = 'heavy'
-      formData.value.taskType = 'heavy'
-      formData.value.applicationType = 'Тяжелая промышленность'
+      console.error('Error loading application:', error)
+      router.push('/applications')
     }
   }
 })
