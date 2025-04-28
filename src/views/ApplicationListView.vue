@@ -208,6 +208,23 @@
                     </div>
                   </div>
                 </div>
+                
+                <!-- Attachments Upload -->
+                <div class="mt-2">
+                  <label class="font-weight-medium">Прикрепить файл счета  (.docx, .pdf):</label>
+                  <input
+                    type="file"
+                    :id="`attachment-input-${application.id}`"
+                    accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    @change="onAttachmentChange($event, application)"
+                  />
+                  <div v-if="application.attachments && application.attachments.length" class="mt-1">
+                    <div v-for="(file, i) in application.attachments" :key="i" class="text-caption">
+                      <v-icon small color="primary">mdi-file</v-icon>
+                      {{ file.name }}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </v-card-item>
@@ -604,6 +621,28 @@ const exportSelected = async () => {
     alert('Ошибка при экспорте документов: ' + error.message)
   }
 }
+
+// --- Attachments logic ---
+const onAttachmentChange = (event, application) => {
+  const files = event.target.files;
+  if (!files.length) return;
+
+  // Only allow .docx and .pdf
+  const validFiles = Array.from(files).filter(f =>
+    f.type === 'application/pdf' ||
+    f.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+    f.name.endsWith('.pdf') ||
+    f.name.endsWith('.docx')
+  );
+
+  if (!application.attachments) application.attachments = [];
+  for (const file of validFiles) {
+    // Prevent duplicates by name
+    if (!application.attachments.find(f => f.name === file.name)) {
+      application.attachments.push(file);
+    }
+  }
+};
 
 // Initialize component
 onMounted(() => {
