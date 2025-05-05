@@ -181,7 +181,7 @@
               <v-col cols="12" md="6">
                 <v-select
                   v-model="formData.manufacturerSameAsApplicant"
-                  label="Изготовитель совпадает с заявителем?"
+                  label="Изготовитель совпадает с заявителем?!"
                   :items="['Нет', 'Да']" 
                   variant="outlined"
                   density="comfortable"
@@ -191,19 +191,61 @@
                 ></v-select>
               </v-col>
 
+              <div v-if="formData.manufacturerSameAsApplicant === 'Нет'">
+           
               <v-col cols="12" md="6">
+             
                 <v-text-field
+                  v-if="formData.hasOwnProtocol === 'Нет'"
                   v-model="formData.manufacturer"
                   label="Изготовитель"
                   variant="outlined"
                   density="comfortable"
                   hide-details="auto"
                   class="mb-3"
-                  :disabled="formData.manufacturerSameAsApplicant === 'Да'"
+              
                   required
                 ></v-text-field>
+           
               </v-col>
+          </div>
             </v-row>
+
+            <!-- Документы для тяжелой промышленности -->
+            <div v-if="formData.taskType === 'heavy'">
+              <v-row>
+                <v-col cols="12" md="6">
+                  <v-file-input
+                    v-model="formData.egulFile"
+                    label="Выписка из ЕГРЮЛ"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                    class="mb-3"
+                    required
+                  ></v-file-input>
+                </v-col>
+                <v-col cols="12" md="6" v-if="formData.manufacturerSameAsApplicant === 'Нет'">
+                  <v-file-input
+                    v-model="formData.authorizedContractFile"
+                    label="Договор уполномоченного лица"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                    class="mb-3"
+                    required
+                  ></v-file-input>
+                  <v-btn
+                    :href="'/templates/договор_уполномоченного_лица.docx'"
+                    download
+                    color="primary"
+                    class="mt-1"
+                  >
+                    Скачать шаблон договора уполномоченного лица
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </div>
 
             <!-- Additional fields based on application type -->
             <div v-if="formData.taskType === 'light'">
@@ -580,6 +622,7 @@
                 <v-row>
                   <v-col cols="12">
                     <v-text-field
+                      v-if="formData.hasOwnProtocol === 'Нет'"
                       v-model="formData.manufacturer"
                       label="Изготовитель"
                       variant="outlined"
@@ -678,6 +721,8 @@
                       hide-details="auto"
                       class="mb-3"
                       required
+                      :hint="schemeHint"
+                      persistent-hint
                     ></v-select>
                   </v-col>
                 </v-row>
@@ -700,7 +745,7 @@
               
               <!-- Testing Section -->
               <section class="form-section mb-4">
-                <h2 class="text-h6 mb-3">Испытания</h2>
+                <h2 class="text-h6 mb-3">Испытания1</h2>
                 <v-row>
                   <v-col cols="12" md="6">
                     <v-select
@@ -712,6 +757,7 @@
                       hide-details="auto"
                       class="mb-3"
                       required
+                      v-if="formData.hasOwnProtocol === 'Нет'"
                     ></v-select>
                   </v-col>
                   
@@ -729,12 +775,12 @@
                   </v-col>
                 </v-row>
                 
-                <v-row>
+                <v-row v-if="formData.hasOwnProtocol === 'Нет'">
                   <v-col cols="12" md="6">
                     <v-select
                       v-model="formData.protocolCount"
                       label="Количество протоколов"
-                      :items="['0', '1', '2', '3']" 
+                      :items="['1', '2', '3', '4']" 
                       variant="outlined"
                       density="comfortable"
                       hide-details="auto"
@@ -743,6 +789,128 @@
                     ></v-select>
                   </v-col>
                 </v-row>
+                
+                <template v-if="formData.hasOwnProtocol === 'Нет' && formData.protocolCount">
+                  <v-row v-if="parseInt(formData.protocolCount) >= 1">
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="formData.productName1"
+                        label="Наименование продукции для ПИ №1"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  
+                  <v-row v-if="parseInt(formData.protocolCount) >= 2">
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="formData.productName2"
+                        label="Наименование продукции для ПИ №2"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  
+                  <v-row v-if="parseInt(formData.protocolCount) >= 3">
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="formData.productName3"
+                        label="Наименование продукции для ПИ №3"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  
+                  <v-row v-if="parseInt(formData.protocolCount) >= 4">
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="formData.productName4"
+                        label="Наименование продукции для ПИ №4"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                </template>
+                
+                <div v-if="formData.hasOwnProtocol === 'Да'">
+                  <v-row>
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="formData.protocolIssueDate"
+                        label="Дата выдачи протокола"
+                        type="date"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  
+                  <v-row>
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="formData.protocolIssuer"
+                        label="Кто выдал протокол"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  
+                  <v-row>
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="formData.protocolProducts"
+                        label="Продукция в протоколе"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  
+                  <v-row>
+                    <v-col cols="12">
+                      <v-file-input
+                        v-model="formData.protocolFile"
+                        label="Файлы протокола"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        accept=".pdf,.doc,.docx"
+                        required
+                        prepend-icon="mdi-paperclip"
+                        :show-size="true"
+                        chips
+                        multiple
+                      ></v-file-input>
+                    </v-col>
+                  </v-row>
+                </div>
               </section>
               
               <!-- Additional Information Section -->
@@ -1160,6 +1328,7 @@
                 <v-row>
                   <v-col cols="12">
                     <v-text-field
+                      v-if="formData.hasOwnProtocol === 'Нет'"
                       v-model="formData.manufacturer"
                       label="Изготовитель"
                       variant="outlined"
@@ -1258,6 +1427,8 @@
                       hide-details="auto"
                       class="mb-3"
                       required
+                      :hint="schemeHint"
+                      persistent-hint
                     ></v-select>
                   </v-col>
                 </v-row>
@@ -1269,6 +1440,18 @@
                 <v-row>
                   <v-col cols="12" md="6">
                     <v-select
+                      v-model="formData.hasOwnProtocol"
+                      label="У вас свой протокол?"
+                      :items="['Нет', 'Да']" 
+                      variant="outlined"
+                      density="comfortable"
+                      hide-details="auto"
+                      class="mb-3"
+                      required
+                    ></v-select>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-select
                       v-model="formData.laboratory"
                       label="Лаборатория"
                       :items="['ГК ОС «Профессиональность»']" 
@@ -1277,14 +1460,19 @@
                       hide-details="auto"
                       class="mb-3"
                       required
+                      v-if="formData.hasOwnProtocol === 'Нет'"
                     ></v-select>
                   </v-col>
                   
+               
+                </v-row>
+                
+                <v-row v-if="formData.hasOwnProtocol === 'Нет'">
                   <v-col cols="12" md="6">
                     <v-select
-                      v-model="formData.hasOwnProtocol"
-                      label="У вас свой протокол"
-                      :items="['Нет', 'Да']" 
+                      v-model="formData.protocolCount"
+                      label="Количество протоколов"
+                      :items="['1', '2', '3', '4']" 
                       variant="outlined"
                       density="comfortable"
                       hide-details="auto"
@@ -1294,20 +1482,127 @@
                   </v-col>
                 </v-row>
                 
-                <v-row>
-                  <v-col cols="12" md="6">
-                    <v-select
-                      v-model="formData.protocolCount"
-                      label="Количество протоколов"
-                      :items="['0', '1', '2', '3']" 
-                      variant="outlined"
-                      density="comfortable"
-                      hide-details="auto"
-                      class="mb-3"
-                      required
-                    ></v-select>
-                  </v-col>
-                </v-row>
+                <template v-if="formData.hasOwnProtocol === 'Нет' && formData.protocolCount">
+                  <v-row v-if="parseInt(formData.protocolCount) >= 1">
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="formData.productName1"
+                        label="Наименование продукции для ПИ №1"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  
+                  <v-row v-if="parseInt(formData.protocolCount) >= 2">
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="formData.productName2"
+                        label="Наименование продукции для ПИ №2"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  
+                  <v-row v-if="parseInt(formData.protocolCount) >= 3">
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="formData.productName3"
+                        label="Наименование продукции для ПИ №3"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  
+                  <v-row v-if="parseInt(formData.protocolCount) >= 4">
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="formData.productName4"
+                        label="Наименование продукции для ПИ №4"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                </template>
+                
+                <div v-if="formData.hasOwnProtocol === 'Да'">
+                  <v-row>
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="formData.protocolIssueDate"
+                        label="Дата выдачи протокола"
+                        type="date"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  
+                  <v-row>
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="formData.protocolIssuer"
+                        label="Кто выдал протокол"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  <div v-if="formData.hasOwnProtocol != 'Да'">
+                  <v-row>
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="formData.protocolProducts"
+                        label="Продукция в протоколе"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  </div>
+                  <v-row>
+                    <v-col cols="12">
+                      <v-file-input
+                        v-model="formData.protocolFile"
+                        label="Файлы протокола"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        accept=".pdf,.doc,.docx"
+                        required
+                        prepend-icon="mdi-paperclip"
+                        :show-size="true"
+                        chips
+                        multiple
+                      ></v-file-input>
+                    </v-col>
+                  </v-row>
+                </div>
               </section>
               
               <!-- Additional Information Section -->
@@ -3629,20 +3924,7 @@
               </section>
             </div>
 
-            <v-row>
-              <v-col cols="12">
-                <v-textarea
-                  v-model="formData.comments"
-                  label="Комментарии"
-                  variant="outlined"
-                  density="comfortable"
-                  hide-details="auto"
-                  auto-grow
-                  rows="3"
-                  class="mb-3"
-                ></v-textarea>
-              </v-col>
-            </v-row>
+          
 
             <v-row>
               <v-col cols="12" class="d-flex justify-end">
@@ -3770,7 +4052,15 @@ const formData = ref({
   approverPosition: '',
   developerPosition: '',
   notes: '',
-  comments: ''
+  comments: '',
+  productName1: '',
+  productName2: '',
+  productName3: '',
+  productName4: '',
+  hasOwnProtocol: 'Нет',
+  protocolCount: '1',
+  validityPeriod: '',
+  batchSize: '',
 })
 
 // Populate with fake data for heavy industry type if in create mode
@@ -4028,6 +4318,39 @@ onMounted(async () => {
       router.push('/applications')
     }
   }
+})
+
+const getSchemeOptions = (formData) => {
+  if (formData.declarationType === 'Декларирование') {
+    if (formData.validityPeriod === 'Партия') {
+      // For batch, only 2д and 4д
+      return ['2д', '4д']
+    } else {
+      // For series, only 1д and 3д
+      let options = ['1д', '3д']
+      // Add 5д only for heavy industry and TR TS 010 or 032
+      if (
+        formData.taskType === 'heavy' &&
+        (formData.technicalRegulation === 'ТР ТС 010/2011' || formData.technicalRegulation === 'ТР ТС 032/2013')
+      ) {
+        options.push('5д')
+      }
+      return options
+    }
+  }
+  return []
+}
+
+const schemeHint = computed(() => {
+  if (
+    formData.declarationType === 'Декларирование' &&
+    formData.scheme === '5д' &&
+    formData.taskType === 'heavy' &&
+    (formData.technicalRegulation === 'ТР ТС 010/2011' || formData.technicalRegulation === 'ТР ТС 032/2013')
+  ) {
+    return 'Доступно только если изделие эксплуатируется в условиях опасного производственного объекта'
+  }
+  return ''
 })
 </script>
 

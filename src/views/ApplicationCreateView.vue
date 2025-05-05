@@ -266,7 +266,7 @@
               <v-col cols="12" md="6">
                 <v-select
                   v-model="formData.hasOwnProtocol"
-                  label="У вас свой протокол?"
+                  label="У вас свой протокол?11"
                   :items="['Нет', 'Да']" 
                   variant="outlined"
                   density="comfortable"
@@ -395,33 +395,265 @@
                 </v-col>
               </v-row>
 
-              <v-row>
-                <v-col cols="12" md="6">
-                  <v-select
-                    v-model="formData.standard"
-                    label="Технический регламент"
-                    :items="getTechnicalRegulations"
+              <!-- Испытания - Testing section -->
+              <v-card class="mb-4" variant="outlined" elevation="0">
+                <v-card-text>
+                  <div class="text-subtitle-1 font-weight-medium mb-3">Испытания</div>
+                  
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <v-select
+                        v-model="formData.laboratoryName"
+                        label="Лаборатория"
+                        :items="['ЦС ОС «Промтехностандарт»']"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        required
+                      ></v-select>
+                    </v-col>
+                  </v-row>
+                  
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <v-select
+                        v-model="formData.hasOwnProtocol"
+                        label="У вас свой протокол?!!"
+                        :items="['Нет', 'Да']"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        required
+                      ></v-select>
+                    </v-col>
+                  
+                    <v-col cols="12" md="6" v-if="formData.hasOwnProtocol === 'Нет'">
+                      <v-select
+                        v-model="formData.protocolCount"
+                        label="Количество протоколов"
+                        :items="['1', '2', '3', '4', '5']"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                        required
+                      >
+                        <template v-slot:append>
+                          <v-tooltip
+                            location="bottom"
+                            max-width="300"
+                          >
+                            <template v-slot:activator="{ props }">
+                              <v-icon
+                                v-bind="props"
+                                color="primary"
+                                icon="mdi-information-outline"
+                              ></v-icon>
+                            </template>
+                            <span>Если продукция конструктивно отличается, необходимо оформить протокол на каждое изделие имеющее конструктивное или функциональное отличие</span>
+                          </v-tooltip>
+                        </template>
+                      </v-select>
+                    </v-col>
+                  </v-row>
+                  
+                  <!-- If user has their own protocol -->
+                  <div v-if="formData.hasOwnProtocol === 'Да'">
+                    <v-text-field
+                      v-model="formData.protocolIssueDate"
+                      label="Дата выдачи протокола"
+                      type="date"
+                      variant="outlined"
+                      density="comfortable"
+                      hide-details="auto"
+                      class="mb-3"
+                      required
+                    ></v-text-field>
+                    
+                    <v-text-field
+                      v-model="formData.protocolIssuer"
+                      label="Кто выдал протокол"
+                      variant="outlined"
+                      density="comfortable"
+                      hide-details="auto"
+                      class="mb-3"
+                      required
+                    ></v-text-field>
+                    
+                    <v-text-field
+                      v-model="formData.protocolProducts"
+                      label="Продукция в протоколе"
+                      variant="outlined"
+                      density="comfortable"
+                      hide-details="auto"
+                      class="mb-3"
+                      required
+                    ></v-text-field>
+                    
+                    <v-file-input
+                      v-model="formData.protocolFile"
+                      label="Файлы протокола"
+                      variant="outlined"
+                      density="comfortable"
+                      hide-details="auto"
+                      class="mb-3"
+                      accept=".pdf,.doc,.docx"
+                      required
+                      prepend-icon="mdi-paperclip"
+                      :show-size="true"
+                      chips
+                      multiple
+                    ></v-file-input>
+                  </div>
+                </v-card-text>
+              </v-card>
+              
+              <!-- Идентификация изделия - Product Identification -->
+              <v-card class="mb-4" variant="outlined" elevation="0">
+                <v-card-text>
+                  <div class="text-subtitle-1 font-weight-medium mb-3">Идентификация изделия</div>
+                  
+                  <v-text-field
+                    v-model="formData.productName"
+                    label="Название изделия"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
                     class="mb-3"
                     required
-                  ></v-select>
-                </v-col>
+                  ></v-text-field>
+                  
+                  <v-text-field
+                    v-model="formData.productionDate"
+                    label="Дата выпуска (как на шильдике)"
+                    type="date"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                    class="mb-3"
+                    required
+                  ></v-text-field>
+                  
+                  <v-file-input
+                    v-model="formData.productPhoto"
+                    label="Фотография изделия"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                    class="mb-3"
+                    accept="image/*"
+                    required
+                    prepend-icon="mdi-camera"
+                    :show-size="true"
+                    chips
+                    multiple
+                  ></v-file-input>
+                  
+                  <v-file-input
+                    v-model="formData.nameplatePoto"
+                    label="Фотография шильдика (при наличии)"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                    class="mb-3"
+                    accept="image/*"
+                    prepend-icon="mdi-camera"
+                    :show-size="true"
+                    chips
+                    multiple
+                  ></v-file-input>
+                </v-card-text>
+              </v-card>
 
-                <v-col cols="12" md="6">
-                  <v-select
-                    v-model="formData.scheme"
-                    label="Схема сертификации"
-                    :items="['1с', '2с', '3с', '4с', '5с']"
+              <!-- Дополнительно - Additional section -->
+              <v-card class="mb-4" variant="outlined" elevation="0">
+                <v-card-text>
+                  <div class="text-subtitle-1 font-weight-medium mb-3">Дополнительно</div>
+                  
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <v-select
+                        v-model="formData.manager"
+                        label="Менеджер"
+                        :items="['']" 
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                      ></v-select>
+                    </v-col>
+
+                    <v-col cols="12" md="6">
+                      <v-select
+                        v-model="formData.expert"
+                        label="Эксперт"
+                        :items="['Не закреплен']" 
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                      ></v-select>
+                    </v-col>
+                  </v-row>
+                  
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model="formData.cost"
+                        label="Стоимость"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                      ></v-text-field>
+                    </v-col>
+
+                    <v-col cols="12" md="6">
+                      <v-select
+                        v-model="formData.status"
+                        label="Статус"
+                        :items="['Заявка подана']" 
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mb-3"
+                      ></v-select>
+                    </v-col>
+                  </v-row>
+                  
+                  <v-file-input
+                    v-model="formData.additionalDocuments"
+                    label="Документы"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
                     class="mb-3"
-                    required
-                  ></v-select>
-                </v-col>
-              </v-row>
+                    accept=".pdf,.doc,.docx,.xls,.xlsx"
+                    prepend-icon="mdi-paperclip"
+                    :show-size="true"
+                    chips
+                    multiple
+                  ></v-file-input>
+                </v-card-text>
+              </v-card>
+
+              <!-- Комментарии - Comments section -->
+              <v-card class="mb-4" variant="outlined" elevation="0">
+                <v-card-text>
+                  <div class="text-subtitle-1 font-weight-medium mb-3">Комментарии</div>
+                  <v-textarea
+                    v-model="formData.comments"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                    auto-grow
+                    rows="3"
+                    class="mb-3"
+                  ></v-textarea>
+                </v-card-text>
+              </v-card>
             </div>
 
             <div v-else-if="formData.taskType === 'rejection'">
@@ -500,6 +732,42 @@
                 </v-col>
               </v-row>
             </div>
+
+            <div v-else-if="formData.taskType === 'safety'">
+              <v-row>
+                <v-col cols="12">
+                  <v-textarea
+                    v-model="formData.safetyDescription"
+                    label="Описание безопасности"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                    auto-grow
+                    rows="3"
+                    class="mb-3"
+                    required
+                  ></v-textarea>
+                </v-col>
+              </v-row>
+            </div>
+
+            <div v-else-if="formData.taskType === 'specs'">
+              <v-row>
+                <v-col cols="12">
+                  <v-textarea
+                    v-model="formData.specsDescription"
+                    label="Описание ТУ"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                    auto-grow
+                    rows="3"
+                    class="mb-3"
+                    required
+                  ></v-textarea>
+                </v-col>
+              </v-row>
+            </div>
           </v-form>
 
           <v-row>
@@ -529,10 +797,12 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useApplicationStore } from '../stores/applicationStore'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const applicationStore = useApplicationStore()
 
 const taskTypes = ref([
   {
@@ -549,8 +819,28 @@ const taskTypes = ref([
   },
   {
     value: 'rejection',
-    title: 'Отказные письма',
+    title: 'Отказное письмо',
     icon: 'mdi-file-document-outline'
+  },
+  {
+    value: 'passport',
+    title: 'Паспорт продукции',
+    icon: 'mdi-card-account-details-outline'
+  },
+  {
+    value: 'manual',
+    title: 'Руководство по эксплуатации',
+    icon: 'mdi-book-open-variant'
+  },
+  {
+    value: 'safety',
+    title: 'Обоснование безопасности',
+    icon: 'mdi-shield-check-outline'
+  },
+  {
+    value: 'specs',
+    title: 'ТУ',
+    icon: 'mdi-clipboard-list-outline'
   },
   {
     value: 'protocol',
@@ -586,7 +876,19 @@ const formData = ref({
   manufacturerLegalAddress: '',
   manufacturerActualAddress: '',
   productionType: '',
-  declarationValidity: ''
+  declarationValidity: '',
+  hasOwnProtocol: 'Нет',
+  protocolCount: '',
+  protocolIssueDate: '',
+  protocolIssuer: '',
+  protocolProducts: '',
+  protocolFile: '',
+  productPhoto: '',
+  nameplatePoto: '',
+  productionDate: '',
+  laboratoryName: '',
+  additionalDocuments: '',
+  comments: ''
 })
 
 const applicantOptions = computed(() => {
@@ -650,98 +952,60 @@ const getFormTitle = computed(() => {
   return type ? type.title : 'Новая заявка'
 })
 
-const generateDocument = async (data) => {
-  try {
-    // Load the template
-    const response = await fetch('/templates/declaration_template.docx')
-    const templateContent = await response.arrayBuffer()
-    
-    const zip = new PizZip(templateContent)
-    const doc = new Docxtemplater(zip, {
-      paragraphLoop: true,
-      linebreaks: true
-    })
-
-    // Set the template data
-    doc.setData({
-      applicant: data.applicant || authStore.user?.name || '',
-      legalAddress: data.legalAddress || authStore.user?.legalAddress || '',
-      ogrn: data.ogrn || authStore.user?.ogrn || '',
-      phone: data.phone || authStore.user?.phone || '',
-      email: data.email || authStore.user?.email || '',
-      position: 'генерального директора',
-      manufacturer: data.manufacturer || data.legalAddress || '',
-      productInfo: data.productInfo || '',
-      tnvedCode: data.tnvedCode || '8481 80 990 8',
-      technicalRegulation: data.technicalRegulation || 'ТР ТС 010/2011',
-      protocolNumber: data.protocolNumber || '282',
-      protocolDate: data.protocolDate || '05.07.2019',
-      laboratory: data.laboratory || 'ООО ГК ОС «ПромБезопасность»',
-      scheme: data.scheme || '1д',
-      additionalInfo: data.additionalInfo || 'Условия хранения продукции в соответствии с ГОСТ 15150-69'
-    })
-
-    // Generate the document
-    doc.render()
-    
-    const blob = doc.getZip().generate({
-      type: 'blob',
-      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    })
-    
-    // Save the file
-    saveAs(blob, `declaration_${Date.now()}.docx`)
-  } catch (error) {
-    console.error('Error generating document:', error)
-    throw error
-  }
-}
-
 const saveApplication = async () => {
-  const { valid } = await form.value.validate()
-  
-  if (valid) {
-    saving.value = true
+  if (!form.value.validate()) {
+    alert('Пожалуйста, заполните все обязательные поля')
+    return
+  }
+
+  saving.value = true
+  try {
+    console.log('Submitting form data:', formData.value)
     
-    try {
-      const now = new Date()
-      const day = String(now.getDate()).padStart(2, '0')
-      const month = String(now.getMonth() + 1).padStart(2, '0')
-      const year = now.getFullYear()
-      const hours = String(now.getHours()).padStart(2, '0')
-      const minutes = String(now.getMinutes()).padStart(2, '0')
-      
-      const formattedDate = `${day}.${month}.${year}`
-      const formattedTime = `${hours}:${minutes}`
-
-      // Create new application object
-      const newApplication = {
-        type: selectedType.value?.value || selectedType.value,
-        date: formattedDate,
-        time: formattedTime,
-        status: 'draft',
-        ...formData.value,
-        user: authStore.user?.name || 'Гость'
-      }
-
-      // Generate declaration document
-      await generateDocument(newApplication)
-      
-      // Save to parent component
-      const id = await router.parent?.proxy?.$refs.applicationList?.saveNewApplication(newApplication)
-      
-      // Redirect to applications list with success message
-      router.push({ 
-        path: '/applications',
-        query: { newId: id, status: 'created' }
-      })
-    } catch (error) {
-      console.error('Error submitting form:', error)
-      saving.value = false
+    // Use the applicationStore to create the application
+    const result = await applicationStore.createApplication({
+      title: formData.value.title,
+      type: selectedType.value,
+      applicationType: formData.value.applicationType,
+      applicant: formData.value.applicant,
+      inn: formData.value.inn,
+      ogrn: formData.value.ogrn,
+      legalAddress: formData.value.legalAddress,
+      actualAddress: formData.value.actualAddress,
+      phone: formData.value.phone,
+      email: formData.value.email,
+      productName: formData.value.productName,
+      technicalRegulation: formData.value.technicalRegulation,
+      manufacturerSameAsApplicant: formData.value.manufacturerSameAsApplicant,
+      manufacturerName: formData.value.manufacturerName,
+      manufacturerAddress: formData.value.manufacturerAddress,
+      productionType: formData.value.productionType,
+      declarationScheme: formData.value.declarationScheme,
+      declarationValidity: formData.value.declarationValidity,
+      laboratory: formData.value.laboratory,
+      hasOwnProtocol: formData.value.hasOwnProtocol,
+      protocolCount: formData.value.protocolCount,
+      manager: formData.value.manager,
+      expert: formData.value.expert,
+      cost: formData.value.cost,
+      status: 'draft',
+      comments: formData.value.comments
+    })
+    
+    console.log('Application created:', result)
+    
+    if (result.success) {
+      alert('Заявка успешно создана!')
+      router.push('/applications')
+    } else {
       alert('Произошла ошибка при создании заявки. Пожалуйста, попробуйте снова.')
-    } finally {
-      saving.value = false
     }
+  } catch (error) {
+    console.error('Error submitting form:', error)
+    saving.value = false
+    alert('Произошла ошибка при создании заявки. Пожалуйста, попробуйте снова.')
+  } finally {
+    saving.value = false
   }
 }
 
@@ -790,8 +1054,14 @@ watch(() => formData.value.applicant, (newVal, oldVal) => {
 // Watch for tab changes to update route and form data
 watch(selectedType, (newType) => {
   if (!newType) return
+  const selectedTask = taskTypes.value.find(t => t.value === newType)
+  formData.value.applicationType = selectedTask?.title || ''
   
-  formData.value.applicationType = taskTypes.value.find(t => t.value === newType)?.title || ''
+  // Always update the title when the type changes
+  formData.value.title = selectedTask ? `Заявка на сертификацию (${selectedTask.title})` : ''
+  
+  // Set taskType to match the selected tab
+  formData.value.taskType = newType
   
   if (newType === 'heavy') {
     router.push({ name: 'application-create-heavy' })

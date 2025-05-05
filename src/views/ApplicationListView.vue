@@ -122,7 +122,7 @@
                     class="text-body-1 font-weight-medium text-primary cursor-pointer"
                     @click="editApplication(application.id)"
                   >
-                    {{ application.title || `Заявка на сертификацию ${application.appNumber || index + 1}` }}
+                    {{ getDisplayTitle(application) }}
                   </div>
                   <div>
                     <v-chip
@@ -235,7 +235,7 @@
               v-if="application.status !== 'completed'"
               prepend-icon="mdi-pencil"
               variant="outlined"
-              color="grey-darken-1"
+              color="primary"
               size="small"
               class="text-uppercase"
               density="comfortable"
@@ -363,13 +363,15 @@ const ApplicationStatus = {
 
 // Application type names
 const applicationTypeMap = {
-  'light': 'Легкая промышленность',
-  'heavy': 'Тяжелая промышленность',
-  'rejection': 'Отказное письмо',
-  'manual': 'Руководства по эксплуатации',
-  'passport': 'Паспорт продукции',
-  'safety': 'Обоснование безопасности',
-  'tu': 'ТУ'
+  '1': 'Легкая промышленность',
+  '2': 'Тяжелая промышленность',
+  '3': 'Отказное письмо',
+  '4': 'Руководства по эксплуатации',
+  '5': 'Паспорт продукции',
+  '6': 'Обоснование безопасности',
+  '7': 'ТУ',
+  '8': 'Декларация соответствия',
+  '9': 'Сертификация'
 }
 
 // Helper function to recursively search through objects
@@ -450,7 +452,19 @@ const filteredApplications = computed(() => {
 
   // Filter by active tab
   if (activeTab.value !== 'all') {
-    filtered = filtered.filter(app => app.type === activeTab.value)
+    // Map tab values to numeric type codes
+    const typeCodeMap = {
+      'light': '1',
+      'heavy': '2',
+      'rejection': '3',
+      'manual': '4',
+      'passport': '5',
+      'safety': '6',
+      'tu': '7'
+    };
+    
+    const typeCode = typeCodeMap[activeTab.value];
+    filtered = filtered.filter(app => app.type === typeCode);
   }
 
   // Sort by date
@@ -505,7 +519,29 @@ const createApplication = () => {
 }
 
 const editApplication = (id) => {
-  router.push(`/application/${id}/edit`)
+  // Get the application by ID
+  console.log('Attempting to edit application with ID:', id)
+  
+  // Try different ways to find the application
+  let application = applicationStore.getApplication(id)
+  
+  if (!application) {
+    // If not found by the getter, try direct search
+    application = applicationStore.applications.find(app => 
+      app.id === id || 
+      (typeof app.id === 'number' && app.id === parseInt(id)) ||
+      app.uuid === id
+    )
+  }
+  
+  if (application) {
+    console.log('Found application to edit:', application)
+    // Always use ID for consistency
+    router.push(`/application/${id}/edit`)
+  } else {
+    console.error('Application not found with ID:', id)
+    alert('Не удалось найти заявку для редактирования')
+  }
 }
 
 const selfAssignApplication = (application) => {
@@ -643,6 +679,38 @@ const onAttachmentChange = (event, application) => {
     }
   }
 };
+
+// Utility to get display title with type
+function getDisplayTitle(application) {
+  // Map numeric type codes to descriptive names
+  const typeMap = {
+    '1': 'Легкая промышленность',
+    '2': 'Тяжелая промышленность',
+    '3': 'Отказное письмо',
+    '4': 'Руководство по эксплуатации',
+    '5': 'Паспорт продукции',
+    '6': 'Обоснование безопасности',
+    '7': 'ТУ',
+    '8': 'Декларация соответствия',
+    '9': 'Сертификация'
+  };
+  
+  // Get the descriptive type name
+  const typeName = typeMap[application.type] || '';
+  
+  // If we have a type name and the title doesn't already include it
+  if (typeName && application.title && !application.title.includes(typeName)) {
+    return `${application.title} (${typeName})`;
+  }
+  
+  // If we have a type name but no title
+  if (typeName && !application.title) {
+    return `Заявка на сертификацию (${typeName})`;
+  }
+  
+  // Fallback to original title or default
+  return application.title || `Заявка на сертификацию ${application.appNumber || ''}`;
+}
 
 // Initialize component
 onMounted(() => {

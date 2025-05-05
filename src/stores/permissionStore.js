@@ -21,7 +21,7 @@ export const usePermissionStore = defineStore('permissions', {
             actions: ['view']
           },
           'client': {
-            paths: ['/', '/applications', '/personal-account', '/profile', '/news', '/about'],
+            paths: ['/', '/applications', '/personal-account', '/profile', '/news', '/about', '/application/create', '/application/:id/edit'],
             actions: ['view', 'create', 'edit']
           },
           'expert': {
@@ -29,7 +29,7 @@ export const usePermissionStore = defineStore('permissions', {
             actions: ['view', 'edit', 'approve', 'reject', 'self-assign']
           },
           'manager': {
-            paths: ['/', '/applications', '/personal-account', '/profile', '/news', '/about'],
+            paths: ['/', '/applications', '/personal-account', '/profile', '/news', '/about', '/application/create', '/application/:id/edit'],
             actions: ['view', 'create', 'edit', 'approve', 'reject']
           },
           'admin': {
@@ -59,6 +59,15 @@ export const usePermissionStore = defineStore('permissions', {
       // Check if the exact path is allowed
       if (userPerms.paths.includes(path)) {
         return true
+      }
+
+      // Check for dynamic route patterns (e.g., /application/:id/edit)
+      for (const permPath of userPerms.paths) {
+        // Convert /application/:id/edit to regex
+        const regex = new RegExp('^' + permPath.replace(/:[^/]+/g, '[^/]+') + '$')
+        if (regex.test(path)) {
+          return true
+        }
       }
 
       // Check if any parent path is allowed

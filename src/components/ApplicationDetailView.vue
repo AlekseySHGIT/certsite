@@ -179,36 +179,9 @@ const props = defineProps({
   }
 });
 
-// Default application data with sample values matching the screenshot
-const defaultApplication = {
-  title: 'Провести работы по обновлению Secret Net Studio на версию 8.10',
-  status: 'Закрыта',
-  priority: 'Низкий',
-  assignee: 'Алексеев Д.О.',
-  createdAt: '2025-01-27T12:56:00',
-  initiator: 'Нефедов А.Г.',
-  dutyManager: '',
-  acceptedBy: 'Куртепова С.А.',
-  coordinator: 'Куртепова С.А.',
-  executors: 'Алексеев Д.О.',
-  closedBy: 'Нефедов А.Г.',
-  closedAt: '2025-02-20T13:17:00',
-  dueDate: '2025-02-17T12:55:00',
-  serviceType: 'Обновление ПО или АПК',
-  vendor: 'Код Безопасности',
-  caseNumber: 'INC0000197987',
-  extensionApproved: true,
-  extendedTo: '2025-02-21T09:21:00',
-  files: [
-    { name: '8711.docx', size: '39,3 КБ', uploadedBy: 'Redmine Admin', uploadedAt: '2025-01-27T12:56:00' },
-    { name: '8711.docx', size: '39,3 КБ', uploadedBy: 'Redmine Admin', uploadedAt: '2025-02-07T11:15:00' },
-    { name: '8711.docx', size: '39,5 КБ', uploadedBy: 'Redmine Admin', uploadedAt: '2025-02-07T15:26:00' }
-  ]
-};
-
 // Merge provided data with defaults
 const application = computed(() => {
-  return { ...defaultApplication, ...props.applicationData };
+  return { ...props.applicationData };
 });
 
 // Pagination info

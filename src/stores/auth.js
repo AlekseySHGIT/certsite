@@ -1,4 +1,6 @@
 import { defineStore } from 'pinia'
+import { ability } from '../casl-setup';
+import { defineAbilitiesFor } from '../services/ability';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -49,6 +51,7 @@ export const useAuthStore = defineStore('auth', {
           role: 'manager'
         }
         this.setUser(user)
+        ability.update(defineAbilitiesFor(user.role).rules);
         this.setToken('mock_token_123')
         return true
       }
@@ -61,7 +64,48 @@ export const useAuthStore = defineStore('auth', {
           role: 'client'
         }
         this.setUser(user)
+        ability.update(defineAbilitiesFor(user.role).rules);
         this.setToken('mock_token_456')
+        return true
+      }
+
+      if (email === 'client1@client.cc' && password === 'client1@client.cc') {
+        const user = {
+          id: 6,
+          name: 'ООО "Прямой Клиент"',
+          email: 'client1@client.cc',
+          role: 'client',
+          companyName: 'ООО "Прямой Клиент"',
+          phone: '+7 (495) 111-11-11',
+          inn: '7701111111',
+          ogrn: '1111111111111',
+          physicalAddress: 'г.Москва, Прямая ул., д.1',
+          legalAddress: 'г.Москва, Прямая ул., д.1',
+          position: 'Директор'
+        }
+        this.setUser(user)
+        ability.update(defineAbilitiesFor(user.role).rules);
+        this.setToken('mock_token_client1')
+        return true
+      }
+
+      if (email === 'client2@client.cc' && password === 'client2@client.cc') {
+        const user = {
+          id: 7,
+          name: 'ООО "Посредник"',
+          email: 'client2@client.cc',
+          role: 'client',
+          companyName: 'ООО "Посредник"',
+          phone: '+7 (495) 222-22-22',
+          inn: '7702222222',
+          ogrn: '2222222222222',
+          physicalAddress: 'г.Москва, Посредническая ул., д.2',
+          legalAddress: 'г.Москва, Посредническая ул., д.2',
+          position: 'Директор'
+        }
+        this.setUser(user)
+        ability.update(defineAbilitiesFor(user.role).rules);
+        this.setToken('mock_token_client2')
         return true
       }
 
@@ -73,6 +117,7 @@ export const useAuthStore = defineStore('auth', {
           role: 'admin'
         }
         this.setUser(user)
+        ability.update(defineAbilitiesFor(user.role).rules);
         this.setToken('mock_token_789')
         return true
       }
@@ -86,6 +131,7 @@ export const useAuthStore = defineStore('auth', {
           specialization: 'Легкая промышленность'
         }
         this.setUser(user)
+        ability.update(defineAbilitiesFor(user.role).rules);
         this.setToken('mock_token_101')
         return true
       }
@@ -99,6 +145,7 @@ export const useAuthStore = defineStore('auth', {
           specialization: 'Тяжелая промышленность'
         }
         this.setUser(user)
+        ability.update(defineAbilitiesFor(user.role).rules);
         this.setToken('mock_token_102')
         return true
       }
@@ -121,6 +168,7 @@ export const useAuthStore = defineStore('auth', {
           email: 'manager@manager.cc',
           role: 'manager'
         })
+        ability.update(defineAbilitiesFor('manager').rules);
         return true
       }
 
@@ -131,6 +179,43 @@ export const useAuthStore = defineStore('auth', {
           email: 'client@client.cc',
           role: 'client'
         })
+        ability.update(defineAbilitiesFor('client').rules);
+        return true
+      }
+
+      if (token === 'mock_token_client1') {
+        this.setUser({
+          id: 6,
+          name: 'ООО "Прямой Клиент"',
+          email: 'client1@client.cc',
+          role: 'client',
+          companyName: 'ООО "Прямой Клиент"',
+          phone: '+7 (495) 111-11-11',
+          inn: '7701111111',
+          ogrn: '1111111111111',
+          physicalAddress: 'г.Москва, Прямая ул., д.1',
+          legalAddress: 'г.Москва, Прямая ул., д.1',
+          position: 'Директор'
+        })
+        ability.update(defineAbilitiesFor('client').rules);
+        return true
+      }
+
+      if (token === 'mock_token_client2') {
+        this.setUser({
+          id: 7,
+          name: 'ООО "Посредник"',
+          email: 'client2@client.cc',
+          role: 'client',
+          companyName: 'ООО "Посредник"',
+          phone: '+7 (495) 222-22-22',
+          inn: '7702222222',
+          ogrn: '2222222222222',
+          physicalAddress: 'г.Москва, Посредническая ул., д.2',
+          legalAddress: 'г.Москва, Посредническая ул., д.2',
+          position: 'Директор'
+        })
+        ability.update(defineAbilitiesFor('client').rules);
         return true
       }
 
@@ -141,6 +226,7 @@ export const useAuthStore = defineStore('auth', {
           email: 'admin@admin.cc',
           role: 'admin'
         })
+        ability.update(defineAbilitiesFor('admin').rules);
         return true
       }
 
@@ -152,6 +238,7 @@ export const useAuthStore = defineStore('auth', {
           role: 'expert',
           specialization: 'Легкая промышленность'
         })
+        ability.update(defineAbilitiesFor('expert').rules);
         return true
       }
 
@@ -163,6 +250,7 @@ export const useAuthStore = defineStore('auth', {
           role: 'expert',
           specialization: 'Тяжелая промышленность'
         })
+        ability.update(defineAbilitiesFor('expert').rules);
         return true
       }
 

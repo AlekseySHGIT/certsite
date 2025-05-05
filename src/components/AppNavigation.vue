@@ -42,6 +42,7 @@
         ></v-list-item>
         
         <v-list-item
+          v-if="['client', 'manager'].includes(authStore.role)"
           prepend-icon="mdi-plus-circle"
           title="Создать заявку"
           value="create-application"
@@ -124,8 +125,13 @@ const userMenu = ref(false)
 
 const menuItems = computed(() => {
   const currentRole = authStore.isAuthenticated ? authStore.role : 'guest'
+  // For admin, show all routes in the menu
+  if (currentRole === 'admin') {
+    return router.options.routes.filter(route => route.meta?.showInMenu)
+  }
+  // For others, filter by roles
   return router.options.routes.filter(route => 
-    route.meta?.roles?.includes(currentRole)
+    route.meta?.showInMenu && route.meta?.roles?.includes(currentRole)
   )
 })
 

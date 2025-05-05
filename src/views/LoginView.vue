@@ -86,7 +86,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
+import { useAuthStore } from '../stores/authStore'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -99,8 +99,8 @@ const showError = ref(false)
 const errorMessage = ref('')
 
 // Pre-fill admin credentials
-const email = ref('admin@admin.cc')
-const password = ref('admin@admin.cc')
+const email = ref('client@client.cc')
+const password = ref('client@client.cc')
 
 const emailRules = [
   v => !!v || 'Email обязателен',

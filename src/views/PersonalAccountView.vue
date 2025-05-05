@@ -14,7 +14,9 @@
               </v-avatar>
               <div>
                 <div class="text-h6">{{ authStore.user?.name || 'Гость' }}</div>
-                <div class="text-subtitle-1 text-grey-darken-1">{{ getRoleName(authStore.role) }}</div>
+                <div class="text-subtitle-1 text-grey-darken-1">
+                  {{ getDetailedRoleName() }}
+                </div>
               </div>
             </div>
 
@@ -157,7 +159,17 @@ const recentApplications = computed(() => {
   return authStore.userApplications?.slice(0, 5) || []
 })
 
-const getRoleName = (role) => {
+const getDetailedRoleName = () => {
+  // If user has a specific client group role, show that instead of generic "client"
+  if (authStore.user?.role?.startsWith('client_group_')) {
+    if (authStore.user.role === 'client_group_1') {
+      return 'Клиент (Прямой клиент)'
+    } else if (authStore.user.role === 'client_group_2') {
+      return 'Клиент (Посредник)'
+    }
+  }
+
+  // Otherwise use the standard role mapping
   const roleMap = {
     'guest': 'Гость',
     'client': 'Клиент',
@@ -166,7 +178,7 @@ const getRoleName = (role) => {
     'admin': 'Администратор',
     'tester': 'Тестировщик'
   }
-  return roleMap[role] || 'Неизвестная роль'
+  return roleMap[authStore.role] || 'Неизвестная роль'
 }
 
 const getApplicationTypeName = (type) => {

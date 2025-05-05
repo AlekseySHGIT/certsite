@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { useAuthStore } from './auth'
+import { api } from '@/services/api'
 
 export const useApplicationStore = defineStore('application', {
   state: () => ({
@@ -180,7 +181,31 @@ export const useApplicationStore = defineStore('application', {
 
   getters: {
     getApplication: (state) => (id) => {
-      return state.applications.find(app => app.id === parseInt(id))
+      console.log('ApplicationStore: Looking for application with ID:', id, 'Type:', typeof id)
+      
+      // Try to find by exact ID match (string or number)
+      let application = state.applications.find(app => 
+        app.id === id || 
+        app.id === parseInt(id) ||
+        app.uuid === id
+      )
+      
+      // If not found, try to find by appNumber
+      if (!application && typeof id === 'string') {
+        // Extract appNumber from string IDs like 'ЛП 569' or 'ЛП-569' or 'app-569'
+        const match = id.match(/(\d+)/)
+        if (match && match[1]) {
+          const appNumber = match[1]
+          console.log('ApplicationStore: Trying to find by appNumber:', appNumber)
+          application = state.applications.find(app => 
+            app.appNumber === appNumber || 
+            (app.id && app.id.toString().includes(appNumber))
+          )
+        }
+      }
+      
+      console.log('ApplicationStore: Found application:', application)
+      return application
     },
     
     getFilteredApplications: (state) => {
@@ -252,6 +277,102 @@ export const useApplicationStore = defineStore('application', {
       const authStore = useAuthStore()
       if (authStore.isAdmin) {
         this.assignExpert(applicationId, expertId, expertName)
+      }
+    },
+    
+    // Load applications from API
+    async loadApplicationsFromApi() {
+      try {
+        console.log('Loading applications from API')
+        const applications = await api.getApplications()
+        console.log('Loaded applications from API:', applications)
+        this.setApplications(applications)
+        return applications
+      } catch (error) {
+        console.error('Failed to load applications from API:', error)
+        return []
+      }
+    },
+    
+    // Create a new application
+    async createApplication(applicationData) {
+      try {
+        console.log('Creating application with data:', applicationData)
+        const result = await api.createApplication(applicationData)
+        
+        if (result.success && result.data) {
+          this.addApplication(result.data)
+          console.log('Application created successfully:', result.data)
+        }
+        
+        return result
+      } catch (error) {
+        console.error('Failed to create application:', error)
+        throw error
+      }
+    },
+    
+    // Update an existing application
+    async saveApplication(applicationId, applicationData) {
+      try {
+        console.log('Saving application with ID:', applicationId, 'Data:', applicationData)
+        const result = await api.updateApplication(applicationId, applicationData)
+        
+        if (result.success && result.data) {
+          this.updateApplication(result.data)
+          console.log('Application updated successfully:', result.data)
+        }
+        
+        return result
+      } catch (error) {
+        console.error('Failed to update application:', error)
+        throw error
+      }
+    },
+    
+    // Submit application to external system
+    async submitApplication(applicationId) {
+      try {
+        const application = this.getApplication(applicationId)
+        if (!application) {
+          throw new Error('Application not found')
+        }
+        
+        console.log('Submitting application to external system:', applicationId)
+        const result = await api.submitApplication(application)
+        
+        if (result.success) {
+          // Update application status
+          application.status = 'pending'
+          this.updateApplication(application)
+        }
+        
+        return result
+      } catch (error) {
+        console.error('Failed to submit application:', error)
+        throw error
+      }
+    },
+    
+    // Generate certificate for application
+    async generateCertificate(applicationId) {
+      try {
+        console.log('Generating certificate for application:', applicationId)
+        const result = await api.generateCertificate(applicationId)
+        
+        if (result.success) {
+          const application = this.getApplication(applicationId)
+          if (application) {
+            application.certificateUrl = result.certificateUrl
+            application.status = 'completed'
+            this.updateApplication(application)
+          }
+        }
+        
+        return result
+      } catch (error) {
+        console.error('Failed to generate certificate:', error)
+        throw error
       }
     }
   }

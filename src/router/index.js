@@ -47,7 +47,7 @@ const routes = [
   {
     path: '/application/:id/edit',
     name: 'application-edit',
-    component: () => import('../views/ApplicationFormView.vue'),
+    component: () => import('../views/ApplicationEditView.vue'),
     meta: {
       showInMenu: false,
       roles: ['client', 'manager', 'admin', 'expert'],

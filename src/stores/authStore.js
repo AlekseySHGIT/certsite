@@ -1,7 +1,49 @@
 import { defineStore } from 'pinia'
 
-// Mock users data
-const mockUsers = [
+// Initial mock users data
+const initialUsers = [
+  // Клиент группы 1 (Прямой клиент)
+  {
+    email: 'client1@client.cc',
+    password: 'client1@client.cc',
+    name: 'ООО "Прямой Клиент"',
+    role: 'client_group_1',
+    companyName: 'ООО "Прямой Клиент"',
+    phone: '+7 (495) 111-11-11',
+    inn: '7701111111',
+    ogrn: '1111111111111',
+    physicalAddress: 'г.Москва, Прямая ул., д.1',
+    legalAddress: 'г.Москва, Прямая ул., д.1',
+    position: 'Директор',
+    assignedCompanies: [],
+  },
+  // Клиент группы 2 (Посредник)
+  {
+    email: 'client2@client.cc',
+    password: 'client2@client.cc',
+    name: 'ООО "Посредник"',
+    role: 'client_group_2',
+    companyName: 'ООО "Посредник"',
+    phone: '+7 (495) 222-22-22',
+    inn: '7702222222',
+    ogrn: '2222222222222',
+    physicalAddress: 'г.Москва, Посредническая ул., д.2',
+    legalAddress: 'г.Москва, Посредническая ул., д.2',
+    position: 'Директор',
+    assignedCompanies: [
+      {
+        name: 'ООО "Клиент 1"',
+        inn: '7703333333',
+        ogrn: '3333333333333',
+      },
+      {
+        name: 'ООО "Клиент 2"',
+        inn: '7704444444',
+        ogrn: '4444444444444',
+      }
+    ],
+  },
+  // Менеджер
   {
     email: 'manager@manager.cc',
     password: 'manager@manager.cc',
@@ -14,8 +56,9 @@ const mockUsers = [
     physicalAddress: 'г.Москва, Романшково - Уделеный проезд, д.10 офис 324',
     legalAddress: 'г.Москва, Романшково - Уделеный проезд, д.10 офис 324',
     position: 'Генеральный директор',
-    assignedClients: [] // Clients assigned to this manager
+    assignedClients: [],
   },
+  // Эксперт
   {
     email: 'expert@expert.cc',
     password: 'expert@expert.cc',
@@ -23,14 +66,15 @@ const mockUsers = [
     role: 'expert',
     phone: '+7 (495) 234-56-78',
     position: 'Эксперт',
-    specialization: 'Легкая промышленность'
+    specialization: 'Легкая промышленность',
   },
+  // Администратор
   {
     email: 'admin@admin.cc',
     password: 'admin@admin.cc',
     name: 'Администратор',
     role: 'admin',
-    position: 'Администратор системы'
+    position: 'Администратор системы',
   }
 ]
 
@@ -40,15 +84,25 @@ export const useAuthStore = defineStore('auth', {
     role: 'guest',
     isAuthenticated: false,
     userApplications: [],
-    assignedClients: [] // For managers
+    assignedClients: [],
+    users: [...initialUsers], // <-- users now in Pinia state
   }),
 
   actions: {
     login(email, password) {
-      const user = mockUsers.find(u => u.email === email && u.password === password)
+      console.log('DEBUG users:', this.users)
+      console.log('DEBUG login attempt:', email, password)
+      const user = this.users.find(u => u.email === email && u.password === password)
       if (user) {
         this.user = { ...user }
-        this.role = user.role
+        
+        // Map client group roles to the base 'client' role for permissions
+        if (user.role.startsWith('client_group_')) {
+          this.role = 'client'
+        } else {
+          this.role = user.role
+        }
+        
         this.isAuthenticated = true
         this.assignedClients = user.assignedClients || []
         return true
