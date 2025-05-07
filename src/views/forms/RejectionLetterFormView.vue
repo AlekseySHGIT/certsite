@@ -19,10 +19,10 @@
         </v-col>
       </v-row>
 
-      <!-- Base Form Fields -->
-      <ApplicationBaseForm
+      <!-- Common Fields -->
+      <CommonFieldsHighlighted
         v-model:formData="formData"
-        ref="baseForm"
+        ref="commonFields"
       />
 
       <!-- Rejection Letter Specific Fields -->
@@ -45,7 +45,7 @@
             variant="outlined"
             density="comfortable"
             hide-details="auto"
-            class="mb-3"
+            class="mb-3 common-field"
             required
           ></v-text-field>
 
@@ -112,7 +112,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import ApplicationBaseForm from '@/components/shared/ApplicationBaseForm.vue'
+import CommonFieldsHighlighted from '@/components/shared/CommonFieldsHighlighted.vue'
 import { api } from '@/services/api'
 import { useApplicationSave } from '@/composables/useApplicationSave'
 
@@ -189,5 +189,9 @@ if (!props.isCreateMode) {
 <style scoped>
 .application-title :deep(.v-field__input) {
   background-color: rgb(255, 255, 200) !important;
+}
+
+.common-fields-section {
+  margin-bottom: 24px;
 }
 </style>

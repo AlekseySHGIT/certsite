@@ -4,8 +4,11 @@
       <h1>Личный кабинет {{ user.fullName }}</h1>
       
       <div class="profile-actions">
-        <v-btn color="primary" variant="outlined" size="small">ИЗМЕНИТЬ ДАННЫЕ</v-btn>
-        <v-btn color="error" variant="outlined" size="small">ВЫЙТИ</v-btn>
+        <!-- Edit profile button - Only visible if user has permission to update profile -->
+        <Can I="update" a="Profile" passThrough v-slot="{ allowed }">
+          <v-btn color="primary" variant="outlined" size="small" :disabled="!allowed">ИЗМЕНИТЬ ДАННЫЕ</v-btn>
+        </Can>
+        <v-btn color="error" variant="outlined" size="small" @click="logout">ВЫЙТИ</v-btn>
       </div>
     </div>
 
@@ -56,17 +59,42 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useAbility } from '@casl/vue'
+import { useAuthStore } from '../stores/auth'
+import { usePermissionsStore } from '../stores/permissions'
 
-// Mock user data
-const user = ref({
-  fullName: 'Петров Василий Иванович',
-  email: 'manager@manager.cc',
-  registrationDate: '15.04.2022',
-  lastLoginDate: '03.04.2015',
-  phone: null, // Example of missing data
-  role: 'Менеджер'
+// Get the ability instance and auth store
+const { can } = useAbility()
+const authStore = useAuthStore()
+const permissionsStore = usePermissionsStore()
+
+// Use the actual user data from auth store
+const user = computed(() => {
+  return {
+    fullName: authStore.user?.name || 'Гость',
+    email: authStore.user?.email || 'Нет данных',
+    registrationDate: '15.04.2022', // This would come from the server in a real app
+    lastLoginDate: '03.04.2025',
+    phone: authStore.user?.phone || null,
+    role: authStore.role === 'admin' ? 'Администратор' :
+          authStore.role === 'manager' ? 'Менеджер' :
+          authStore.role === 'client' ? 'Клиент' :
+          authStore.role === 'expert' ? 'Эксперт' : 'Гость'
+  }
 })
+
+// Check if user can edit profile
+const canEditProfile = computed(() => {
+  return can('update', 'Profile')
+})
+
+// Logout function
+const logout = () => {
+  authStore.logout()
+  // Redirect to home page
+  window.location.href = '/'
+}
 </script>
 
 <style scoped>

@@ -1,5 +1,6 @@
 <template>
-  <v-form ref="form">
+  <div class="common-fields-wrapper">
+    <h3 style="margin-bottom: 16px; color: #0066cc; font-weight: 500;">Общие поля для всех типов заявок</h3>
     <v-row>
       <v-col cols="12" md="6">
         <v-select
@@ -76,36 +77,7 @@
         ></v-text-field>
       </v-col>
     </v-row>
-
-    <v-divider class="my-3"></v-divider>
-
-    <!-- Manufacturer Info -->
-    <v-row>
-      <v-col cols="12" md="6">
-        <v-select
-          v-model="formData.manufacturerSameAsApplicant"
-          label="Изготовитель совпадает с заявителем?"
-          :items="['Да', 'Нет']"
-          variant="outlined"
-          density="comfortable"
-          hide-details="auto"
-          class="mb-3"
-          required
-        ></v-select>
-
-        <v-text-field
-          v-model="formData.manufacturer"
-          label="Изготовитель"
-          variant="outlined"
-          density="comfortable"
-          hide-details="auto"
-          class="mb-3"
-          :disabled="formData.manufacturerSameAsApplicant === 'Да'"
-          required
-        ></v-text-field>
-      </v-col>
-    </v-row>
-  </v-form>
+  </div>
 </template>
 
 <script setup>
@@ -129,21 +101,13 @@ const applicantOptions = ref([
   ...(authStore.isAuthenticated ? [authStore.user?.companyName || authStore.user?.fullName || authStore.user?.email] : [])
 ].filter(Boolean))
 
-// Watch for manufacturer same as applicant changes
-watch(() => props.formData.manufacturerSameAsApplicant, (newVal) => {
-  if (newVal === 'Да') {
-    emit('update:formData', {
-      ...props.formData,
-      manufacturer: props.formData.applicant,
-      manufacturerLegalAddress: props.formData.legalAddress,
-      manufacturerActualAddress: props.formData.actualAddress
-    })
-  }
-})
+// Watch for changes to update parent
+watch(() => props.formData, (newVal) => {
+  emit('update:formData', newVal)
+}, { deep: true })
 
 const validate = async () => {
-  const { valid } = await form.value.validate()
-  return valid
+  return true // Validation will be handled at the form level
 }
 
 defineExpose({
@@ -151,10 +115,23 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-/* Common fields styling */
-.common-field :deep(.v-field) {
-  background-color: rgb(230, 242, 255) !important; /* Stronger light blue background */
-  border: 1px solid rgb(200, 225, 255) !important; /* Add a border for more visibility */
+<style>
+/* Using direct selectors to override Vuetify styles */
+.common-fields-wrapper .v-field__field,
+.common-fields-wrapper .v-field__input {
+  background-color: #e6f2ff !important;
+}
+
+.common-fields-wrapper .v-field {
+  background-color: #e6f2ff !important;
+  border: 1px solid #add8e6 !important;
+}
+
+.common-fields-wrapper {
+  background-color: #f0f8ff !important;
+  padding: 16px !important;
+  border-radius: 8px !important;
+  border: 2px solid #add8e6 !important;
+  margin-bottom: 16px !important;
 }
 </style>

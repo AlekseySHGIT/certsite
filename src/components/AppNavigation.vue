@@ -32,41 +32,36 @@
         ></v-list-item>
       </template>
 
-      <!-- Applications Section - only for authenticated users -->
-      <template v-if="authStore.isAuthenticated">
+      <!-- Applications Section - using CASL for permissions -->
+      <Can I="create" a="Application">
         <v-list-item
-          prepend-icon="mdi-file-document-multiple"
-          title="Заявки"
-          value="applications"
-          to="/applications"
-        ></v-list-item>
-        
-        <v-list-item
-          v-if="['client', 'manager'].includes(authStore.role)"
           prepend-icon="mdi-plus-circle"
           title="Создать заявку"
           value="create-application"
           to="/application/create"
-          class="ml-4"
         ></v-list-item>
-      </template>
+      </Can>
 
-      <!-- Additional menu items only for authenticated users -->
-      <template v-if="authStore.isAuthenticated">
+      <!-- Additional menu items using CASL for permissions -->
+      <!-- Invoices - Only for admin and manager roles -->
+      <Can I="manage" a="Invoice">
         <v-list-item 
           prepend-icon="mdi-bank" 
           title="Счета" 
           value="invoices" 
           to="/invoices"
-          v-if="['manager', 'admin'].includes(authStore.role)"
         ></v-list-item>
+      </Can>
+      
+      <!-- Contacts - For authenticated users -->
+      <Can I="read" a="Profile">
         <v-list-item 
           prepend-icon="mdi-contacts" 
           title="Контакты" 
           value="contacts" 
           to="/contacts"
         ></v-list-item>
-      </template>
+      </Can>
     </v-list>
 
     <template v-slot:append>
@@ -116,6 +111,8 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useAbility } from '@casl/vue'
+import { usePermissionsStore } from '../stores/permissions'
 
 const drawer = ref(true)
 const rail = ref(false)

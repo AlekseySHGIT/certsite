@@ -1,5 +1,10 @@
 <template>
-  <v-form ref="form">
+  <div class="common-fields-highlighted">
+    <div class="common-fields-header">
+      <v-icon color="primary" class="mr-2">mdi-checkbox-multiple-marked-circle-outline</v-icon>
+      <span>Общие поля для всех типов заявок</span>
+    </div>
+    
     <v-row>
       <v-col cols="12" md="6">
         <v-select
@@ -9,7 +14,8 @@
           variant="outlined"
           density="comfortable"
           hide-details="auto"
-          class="mb-3 common-field"
+          class="mb-3 blue-field"
+          bg-color="blue-lighten-5"
           required
         ></v-select>
 
@@ -19,7 +25,8 @@
           variant="outlined"
           density="comfortable"
           hide-details="auto"
-          class="mb-3 common-field"
+          class="mb-3 blue-field"
+          bg-color="blue-lighten-5"
           required
         ></v-text-field>
 
@@ -29,7 +36,8 @@
           variant="outlined"
           density="comfortable"
           hide-details="auto"
-          class="mb-3 common-field"
+          class="mb-3 blue-field"
+          bg-color="blue-lighten-5"
           required
         ></v-text-field>
 
@@ -39,7 +47,8 @@
           variant="outlined"
           density="comfortable"
           hide-details="auto"
-          class="mb-3 common-field"
+          class="mb-3 blue-field"
+          bg-color="blue-lighten-5"
           required
         ></v-text-field>
 
@@ -49,7 +58,8 @@
           variant="outlined"
           density="comfortable"
           hide-details="auto"
-          class="mb-3 common-field"
+          class="mb-3 blue-field"
+          bg-color="blue-lighten-5"
           required
         ></v-text-field>
       </v-col>
@@ -61,7 +71,8 @@
           variant="outlined"
           density="comfortable"
           hide-details="auto"
-          class="mb-3 common-field"
+          class="mb-3 blue-field"
+          bg-color="blue-lighten-5"
           required
         ></v-text-field>
 
@@ -71,41 +82,13 @@
           variant="outlined"
           density="comfortable"
           hide-details="auto"
-          class="mb-3 common-field"
+          class="mb-3 blue-field"
+          bg-color="blue-lighten-5"
           required
         ></v-text-field>
       </v-col>
     </v-row>
-
-    <v-divider class="my-3"></v-divider>
-
-    <!-- Manufacturer Info -->
-    <v-row>
-      <v-col cols="12" md="6">
-        <v-select
-          v-model="formData.manufacturerSameAsApplicant"
-          label="Изготовитель совпадает с заявителем?"
-          :items="['Да', 'Нет']"
-          variant="outlined"
-          density="comfortable"
-          hide-details="auto"
-          class="mb-3"
-          required
-        ></v-select>
-
-        <v-text-field
-          v-model="formData.manufacturer"
-          label="Изготовитель"
-          variant="outlined"
-          density="comfortable"
-          hide-details="auto"
-          class="mb-3"
-          :disabled="formData.manufacturerSameAsApplicant === 'Да'"
-          required
-        ></v-text-field>
-      </v-col>
-    </v-row>
-  </v-form>
+  </div>
 </template>
 
 <script setup>
@@ -129,21 +112,13 @@ const applicantOptions = ref([
   ...(authStore.isAuthenticated ? [authStore.user?.companyName || authStore.user?.fullName || authStore.user?.email] : [])
 ].filter(Boolean))
 
-// Watch for manufacturer same as applicant changes
-watch(() => props.formData.manufacturerSameAsApplicant, (newVal) => {
-  if (newVal === 'Да') {
-    emit('update:formData', {
-      ...props.formData,
-      manufacturer: props.formData.applicant,
-      manufacturerLegalAddress: props.formData.legalAddress,
-      manufacturerActualAddress: props.formData.actualAddress
-    })
-  }
-})
+// Watch for changes to update parent
+watch(() => props.formData, (newVal) => {
+  emit('update:formData', newVal)
+}, { deep: true })
 
 const validate = async () => {
-  const { valid } = await form.value.validate()
-  return valid
+  return true // Validation will be handled at the form level
 }
 
 defineExpose({
@@ -151,10 +126,26 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-/* Common fields styling */
-.common-field :deep(.v-field) {
-  background-color: rgb(230, 242, 255) !important; /* Stronger light blue background */
-  border: 1px solid rgb(200, 225, 255) !important; /* Add a border for more visibility */
+<style>
+.common-fields-highlighted {
+  background-color: rgba(173, 216, 230, 0.2);
+  border: 2px solid #add8e6;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+  position: relative;
 }
+
+.common-fields-header {
+  background-color: #add8e6;
+  color: #0066cc;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+}
+
+/* This uses Vuetify's built-in bg-color property which should work reliably */
 </style>

@@ -31,7 +31,7 @@
               label="Наименование продукции"
               variant="outlined"
               density="comfortable"
-              class="mb-3"
+              class="mb-3 common-field"
               hide-details
             ></v-text-field>
             
@@ -40,7 +40,7 @@
               label="Изготовитель"
               variant="outlined"
               density="comfortable"
-              class="mb-3"
+              class="mb-3 common-field"
               hide-details
             ></v-text-field>
             
@@ -118,5 +118,11 @@ const cancel = () => {
 <style scoped>
 .application-content {
   max-width: 800px;
+}
+
+/* Common fields styling */
+.common-field :deep(.v-field) {
+  background-color: rgb(230, 242, 255) !important; /* Light blue background */
+  border: 1px solid rgb(200, 225, 255) !important; /* Add a border for more visibility */
 }
 </style>

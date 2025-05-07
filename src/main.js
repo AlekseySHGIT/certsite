@@ -18,6 +18,9 @@ import router from './router'
 import App from './App.vue'
 import { setupCASL } from './casl-setup'
 
+// CASL
+import { Can } from '@casl/vue'
+
 // Stores
 import { useApplicationStore } from './stores/applicationStore'
 import { useAuthStore } from './stores/auth'
@@ -55,6 +58,9 @@ const app = createApp(App)
 app.use(pinia)
 app.use(router)
 app.use(vuetify)
+
+// Register Can component globally
+app.component(Can.name, Can)
 
 setupCASL(app)
 
