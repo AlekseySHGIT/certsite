@@ -103,6 +103,7 @@ const savePermissions = async () => {
       body: JSON.stringify(permissions.value),
     })
     // Show success message
+ //34
   } catch (error) {
     console.error('Failed to save permissions:', error)
     // Show error message
