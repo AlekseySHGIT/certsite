@@ -8,7 +8,7 @@ import SettingsView from '../views/SettingsView.vue'
 import ApplicationFormView from '../views/ApplicationFormView.vue'
 import { useAuthStore } from '../stores/auth'
 import { usePermissionStore } from '../stores/permissionStore'
-
+//454
 const routes = [
   {
     path: '/',
@@ -47,7 +47,7 @@ const routes = [
   {
     path: '/application/:id/edit',
     name: 'application-edit',
-    component: () => import('../views/ApplicationEditView.vue'),
+    component: () => import('../views/ApplicationFormView.vue'),
     meta: {
       showInMenu: false,
       roles: ['client', 'manager', 'admin', 'expert'],

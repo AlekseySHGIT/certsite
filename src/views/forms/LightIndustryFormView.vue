@@ -25,6 +25,22 @@
         ref="baseForm"
       />
 
+      <!-- Action Buttons -->
+      <v-row class="mb-4">
+        <v-col cols="12" class="d-flex justify-end">
+          <v-btn 
+            color="primary" 
+            variant="tonal"
+            prepend-icon="mdi-file-pdf-box"
+            @click="downloadInvoice"
+            class="mr-2"
+            :disabled="!formData.title"
+          >
+            Скачать счет
+          </v-btn>
+        </v-col>
+      </v-row>
+
       <!-- Light Industry Specific Fields -->
       <v-row>
         <v-col cols="12" md="6">
@@ -117,6 +133,7 @@ import { useRouter, useRoute } from 'vue-router'
 import ApplicationBaseForm from '@/components/shared/ApplicationBaseForm.vue'
 import { api } from '@/services/api'
 import { useApplicationSave } from '@/composables/useApplicationSave'
+import { downloadInvoice as generateAndDownloadInvoice } from '@/utils/invoiceGenerator'
 
 const props = defineProps({
   isCreateMode: {
@@ -192,6 +209,13 @@ if (!props.isCreateMode) {
     }
   }
   loadApplication()
+}
+
+const downloadInvoice = () => {
+  if (!formData.value.title) return
+  
+  // Use the dynamic invoice generator
+  generateAndDownloadInvoice(formData.value)
 }
 </script>
 

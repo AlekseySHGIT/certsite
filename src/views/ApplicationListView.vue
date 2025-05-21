@@ -313,6 +313,19 @@
               Взять в работу
             </v-btn>
             
+            <!-- Download invoice button -->
+            <v-btn
+              prepend-icon="mdi-microsoft-word"
+              variant="outlined"
+              color="blue-darken-3"
+              size="small"
+              class="ml-2 text-uppercase"
+              density="comfortable"
+              @click="() => downloadInvoice(application, 'docx')"
+            >
+              Счет
+            </v-btn>
+
             <!-- Certificate button - for all authenticated users -->
             <v-btn
               prepend-icon="mdi-certificate"
@@ -335,6 +348,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { downloadInvoice } from '@/utils/invoiceGenerator'
 import { useAuthStore } from '../stores/auth'
 import { useApplicationStore } from '@/stores/applicationStore'
 import { Document, Paragraph, TextRun, AlignmentType } from 'docx'
@@ -713,6 +727,8 @@ function getDisplayTitle(application) {
 }
 
 // Initialize component
+// The downloadInvoice function is now imported from invoiceGenerator.js
+
 onMounted(() => {
   // Set initial selected applications array
   selectedApplications.value = []
