@@ -47,6 +47,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useNotification } from '../composables/useNotification'
+
+const { showSuccess, showError } = useNotification()
 
 const roles = [
   { id: 'guest', name: 'Гость сайта' },
@@ -102,11 +105,10 @@ const savePermissions = async () => {
       },
       body: JSON.stringify(permissions.value),
     })
-    // Show success message
- //34
+    showSuccess('Настройки прав доступа успешно сохранены!')
   } catch (error) {
     console.error('Failed to save permissions:', error)
-    // Show error message
+    showError('Ошибка при сохранении настроек прав доступа. Пожалуйста, попробуйте снова.')
   }
 }
 </script>
